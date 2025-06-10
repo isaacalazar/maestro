@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+supabase
+pydantic
+google-auth 
+google-auth-oauthlib 
+google-auth-httplib2
+google-api-python-client
+transformers
+torch
+scikit-learn
