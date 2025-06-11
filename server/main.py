@@ -24,7 +24,7 @@ supabase: Client = create_client(
 )
 
 # Import routers after initializing app and database
-from routers import auth, jobs
+from app.routes import auth, jobs
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(jobs.router, prefix="/api", tags=["jobs"])
