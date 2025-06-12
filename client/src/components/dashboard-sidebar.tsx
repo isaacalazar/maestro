@@ -4,16 +4,9 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   Briefcase,
-  Mail,
-  Calendar,
   Settings,
   ChevronRight,
   ChevronLeft,
-  BarChart4,
-  Users,
-  FileText,
-  Star,
-  Clock,
 } from "lucide-react";
 
 interface DashboardSidebarProps {
@@ -24,19 +17,9 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
   const pathname = usePathname();
 
-  const mainNavItems = [
+  const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Applications", href: "/dashboard/applications", icon: Briefcase },
-    { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
-    { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
-    { name: "Analytics", href: "/dashboard/analytics", icon: BarChart4 },
-  ];
-
-  const secondaryNavItems = [
-    { name: "Companies", href: "/dashboard/companies", icon: Users },
-    { name: "Documents", href: "/dashboard/documents", icon: FileText },
-    { name: "Saved", href: "/dashboard/saved", icon: Star },
-    { name: "History", href: "/dashboard/history", icon: Clock },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
@@ -76,7 +59,7 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
           {/* Navigation */}
           <div className="flex-1 py-6 overflow-y-auto">
             <nav className="px-2 space-y-1">
-              {mainNavItems.map((item) => {
+              {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -93,27 +76,6 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
                   </Link>
                 );
               })}
-            </nav>
-
-            {open && (
-              <div className="mt-8 px-4">
-                <div className="h-px bg-[#333333]" />
-              </div>
-            )}
-
-            <nav className="mt-8 px-2 space-y-1">
-              {secondaryNavItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center px-3 py-2 rounded-md text-[#a3a3a3] hover:text-white hover:bg-[#252525] transition-colors ${
-                    !open && "md:justify-center"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4 flex-shrink-0" />
-                  {open && <span className="ml-3 text-sm">{item.name}</span>}
-                </Link>
-              ))}
             </nav>
           </div>
 

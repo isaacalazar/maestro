@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Bell,
   Menu,
@@ -18,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createClient } from "@/utils/supabase/client";
 
 interface DashboardHeaderProps {
   sidebarOpen: boolean;
@@ -29,6 +31,29 @@ export function DashboardHeader({
   setSidebarOpen,
 }: DashboardHeaderProps) {
   const [notifications, setNotifications] = useState(3);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Error signing out:", error);
+      } else {
+        // Clear any local storage or session data if needed
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Redirect to login page
+        router.push("/login");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if there's an error
+      router.push("/login");
+    }
+  };
 
   return (
     <header className="h-14 border-b border-[#333333] bg-[#191919] sticky top-0 z-30">
@@ -95,7 +120,10 @@ export function DashboardHeader({
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-[#333333]" />
-              <DropdownMenuItem className="hover:bg-[#333333] hover:text-white cursor-pointer">
+              <DropdownMenuItem
+                className="hover:bg-[#333333] hover:text-white cursor-pointer"
+                onClick={handleLogout}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

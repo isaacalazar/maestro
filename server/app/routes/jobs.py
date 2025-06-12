@@ -3,7 +3,11 @@ from typing import List
 from datetime import datetime
 from app.db.supabase import supabase
 from app.models.job import Job, JobCreate, JobUpdate
+from app.services.email_parser import parse_and_classify_emails
+from app.services.performance_monitor import performance_monitor, monitor_performance
+from google.oauth2.credentials import Credentials
 import traceback
+import os
 
 router = APIRouter()
 
@@ -67,4 +71,49 @@ async def create_job(job: JobCreate, user_id: str = Depends(get_current_user)):
     except Exception as e:
         print(f"Error in create_job: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@router.post("/sync-emails")
+@monitor_performance("sync_emails_endpoint")
+async def sync_emails(user_id: str = Depends(get_current_user)):
+    """Manually trigger email parsing and sync with performance monitoring"""
+    try:
+        print(f"🚀 HIGH-PERFORMANCE email sync requested for user: {user_id}")
+        
+        # Get user's credentials from database
+        user_response = supabase.table("users").select("*").eq("id", user_id).execute()
+        
+        if not user_response.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_data = user_response.data[0]
+        
+        if not user_data.get('access_token'):
+            raise HTTPException(status_code=400, detail="User has not connected Google account")
+        
+        # Create credentials object
+        credentials = Credentials(
+            token=user_data['access_token'],
+            refresh_token=user_data.get('refresh_token'),
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=os.getenv("GOOGLE_CLIENT_ID"),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET")
+        )
+        
+        # Parse and classify emails with performance monitoring
+        processed_jobs = await parse_and_classify_emails(credentials, user_id)
+        
+        # Print performance report
+        performance_monitor.print_performance_report()
+        
+        return {
+            "message": f"High-performance email sync completed successfully",
+            "jobs_processed": len(processed_jobs),
+            "jobs": processed_jobs,
+            "performance_report": performance_monitor.get_performance_report()
+        }
+        
+    except Exception as e:
+        print(f"Error in sync_emails: {str(e)}")
+        print(f"Full traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Email sync error: {str(e)}") 

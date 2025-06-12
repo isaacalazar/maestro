@@ -33,6 +33,28 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  /* Custom text selection styling for dark theme */
+  ::selection {
+    background-color: rgba(147, 51, 234, 0.3); /* Purple with transparency */
+    color: #ffffff;
+  }
+
+  ::-moz-selection {
+    background-color: rgba(147, 51, 234, 0.3);
+    color: #ffffff;
+  }
+
+  /* Specific styling for table content selection */
+  table ::selection {
+    background-color: rgba(147, 51, 234, 0.2);
+    color: #ffffff;
+  }
+
+  table ::-moz-selection {
+    background-color: rgba(147, 51, 234, 0.2);
+    color: #ffffff;
+  }
 }
 
 .feature-card {
