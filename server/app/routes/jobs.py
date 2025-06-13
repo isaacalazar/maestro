@@ -4,7 +4,6 @@ from datetime import datetime
 from app.db.supabase import supabase
 from app.models.job import Job, JobCreate, JobUpdate
 from app.services.email_parser import parse_and_classify_emails
-from app.services.performance_monitor import performance_monitor, monitor_performance
 from google.oauth2.credentials import Credentials
 import traceback
 import os
@@ -74,11 +73,10 @@ async def create_job(job: JobCreate, user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/sync-emails")
-@monitor_performance("sync_emails_endpoint")
 async def sync_emails(user_id: str = Depends(get_current_user)):
-    """Manually trigger email parsing and sync with performance monitoring"""
+    """Manually trigger email parsing and sync"""
     try:
-        print(f"🚀 HIGH-PERFORMANCE email sync requested for user: {user_id}")
+        print(f"Manual email sync requested for user: {user_id}")
         
         # Get user's credentials from database
         user_response = supabase.table("users").select("*").eq("id", user_id).execute()
@@ -91,26 +89,42 @@ async def sync_emails(user_id: str = Depends(get_current_user)):
         if not user_data.get('access_token'):
             raise HTTPException(status_code=400, detail="User has not connected Google account")
         
-        # Create credentials object
+        # Debug: Check what credentials data we have
+        print(f"User credentials data:")
+        print(f"  - access_token: {'***' if user_data.get('access_token') else 'MISSING'}")
+        print(f"  - refresh_token: {'***' if user_data.get('refresh_token') else 'MISSING'}")
+        print(f"  - token_expiry: {user_data.get('token_expiry')}")
+        
+        # Check if refresh token is missing
+        if not user_data.get('refresh_token'):
+            raise HTTPException(
+                status_code=400, 
+                detail="Refresh token missing. Please reconnect your Google account by clicking 'Connect Google' again."
+            )
+        
+        # Create credentials object with all required fields
         credentials = Credentials(
             token=user_data['access_token'],
-            refresh_token=user_data.get('refresh_token'),
+            refresh_token=user_data['refresh_token'],
             token_uri="https://oauth2.googleapis.com/token",
             client_id=os.getenv("GOOGLE_CLIENT_ID"),
             client_secret=os.getenv("GOOGLE_CLIENT_SECRET")
         )
         
-        # Parse and classify emails with performance monitoring
+        print(f"Created credentials object with:")
+        print(f"  - token: {'***' if credentials.token else 'MISSING'}")
+        print(f"  - refresh_token: {'***' if credentials.refresh_token else 'MISSING'}")
+        print(f"  - token_uri: {credentials.token_uri}")
+        print(f"  - client_id: {credentials.client_id}")
+        print(f"  - client_secret: {'***' if credentials.client_secret else 'MISSING'}")
+        
+        # Parse and classify emails
         processed_jobs = await parse_and_classify_emails(credentials, user_id)
         
-        # Print performance report
-        performance_monitor.print_performance_report()
-        
         return {
-            "message": f"High-performance email sync completed successfully",
+            "message": f"Email sync completed successfully",
             "jobs_processed": len(processed_jobs),
-            "jobs": processed_jobs,
-            "performance_report": performance_monitor.get_performance_report()
+            "jobs": processed_jobs
         }
         
     except Exception as e:
