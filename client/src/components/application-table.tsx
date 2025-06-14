@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Mail } from "lucide-react";
 import { ApplicationStatusBadge } from "@/components/application-status-badge";
 
@@ -65,7 +64,7 @@ export function ApplicationTable({ jobs = [] }: ApplicationTableProps) {
           </tr>
         </thead>
         <tbody className="bg-[#252525] divide-y divide-[#333333]">
-          {jobs.map((application, index) => (
+          {jobs.map((application) => (
             <tr
               key={application.id}
               className="hover:bg-[#333333] transition-colors duration-150 cursor-pointer select-none"

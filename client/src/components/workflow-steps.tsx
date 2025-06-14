@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { motion, useAnimation, useInView } from "framer-motion"
-import Image from "next/image"
-import { Command } from "lucide-react"
+import { useEffect, useRef, useState } from "react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import Image from "next/image";
+import { Command } from "lucide-react";
 
 export function WorkflowSteps() {
-  const controls = useAnimation()
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
-  const [activeStep, setActiveStep] = useState(0)
+  const controls = useAnimation();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     if (isInView) {
-      controls.start("visible")
+      controls.start("visible");
     }
-  }, [controls, isInView])
+  }, [controls, isInView]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % 4)
-    }, 5000)
+      setActiveStep((prev) => (prev + 1) % 4);
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const steps = [
     {
@@ -37,7 +37,8 @@ export function WorkflowSteps() {
     {
       title: "Track Your Progress",
       subtitle: "Stay on top of your applications",
-      description: "View all your applications in one dashboard with real-time status updates and important deadlines.",
+      description:
+        "View all your applications in one dashboard with real-time status updates and important deadlines.",
       image: "/placeholder.svg?height=600&width=800",
       color: "from-blue-600 to-cyan-700",
     },
@@ -52,25 +53,12 @@ export function WorkflowSteps() {
     {
       title: "Land Your Dream Job",
       subtitle: "Achieve your career goals",
-      description: "Focus on preparing for interviews while Maestro handles the tedious tracking and organization.",
+      description:
+        "Focus on preparing for interviews while Maestro handles the tedious tracking and organization.",
       image: "/placeholder.svg?height=600&width=800",
       color: "from-rose-600 to-pink-700",
     },
-  ]
-
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
+  ];
 
   return (
     <section ref={ref} className="py-24 px-4 md:px-6 relative overflow-hidden">
@@ -80,7 +68,9 @@ export function WorkflowSteps() {
           {steps.map((_, index) => (
             <div
               key={index}
-              className={`absolute w-4 h-4 rounded-full -left-[7px] transition-all duration-300 ${activeStep === index ? "bg-[#9333EA]" : "bg-[#9333EA]/30"}`}
+              className={`absolute w-4 h-4 rounded-full -left-[7px] transition-all duration-300 ${
+                activeStep === index ? "bg-[#9333EA]" : "bg-[#9333EA]/30"
+              }`}
               style={{ top: `${(index + 1) * 25}%` }}
             />
           ))}
@@ -102,12 +92,16 @@ export function WorkflowSteps() {
           >
             <div className="order-2 lg:order-1">
               <div className="text-[#9333EA] mb-2">{step.subtitle}</div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">{step.title}</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">
+                {step.title}
+              </h2>
               <p className="text-zinc-400 text-lg mb-8">{step.description}</p>
 
               <div className="flex items-center gap-2 p-4 bg-zinc-900/50 rounded-lg border border-zinc-800 max-w-md">
                 <Command className="h-5 w-5 text-[#9333EA]" />
-                <span className="text-zinc-300">Connect your email to get started</span>
+                <span className="text-zinc-300">
+                  Connect your email to get started
+                </span>
               </div>
             </div>
 
@@ -132,12 +126,14 @@ export function WorkflowSteps() {
           {steps.map((_, index) => (
             <button
               key={index}
-              className={`w-3 h-3 rounded-full mx-1 transition-all ${activeStep === index ? "bg-[#9333EA]" : "bg-zinc-700"}`}
+              className={`w-3 h-3 rounded-full mx-1 transition-all ${
+                activeStep === index ? "bg-[#9333EA]" : "bg-zinc-700"
+              }`}
               onClick={() => setActiveStep(index)}
             />
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

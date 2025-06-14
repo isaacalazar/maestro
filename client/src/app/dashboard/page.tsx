@@ -111,55 +111,10 @@ export default function DashboardPage() {
     }
   };
 
-  const createManualJob = async () => {
-    const company = prompt("Company name:");
-    const position = prompt("Position:");
-
-    if (company && position) {
-      try {
-        const response = await fetch("http://localhost:8000/api/jobs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            company,
-            position,
-            status: "applied",
-          }),
-        });
-
-        console.log(response);
-
-        if (response.ok) {
-          fetchJobs(); // Refresh the list
-        }
-      } catch (error) {
-        console.error("Failed to create job:", error);
-      }
-    }
-  };
-
   const disconnectGoogleAccount = () => {
     localStorage.removeItem("googleAccountConnected");
     setConnected(false);
     setJobs([]);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "applied":
-        return "bg-blue-100 text-blue-800";
-      case "interviewing":
-        return "bg-yellow-100 text-yellow-800";
-      case "offered":
-        return "bg-green-100 text-green-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
   };
 
   const syncEmails = async () => {
@@ -354,8 +309,8 @@ export default function DashboardPage() {
                         No Applications Found
                       </h3>
                       <p className="text-[#a3a3a3] text-sm">
-                        We couldn't find any job applications in your Gmail. Try
-                        syncing again or add applications manually.
+                        We couldn&apos;t find any job applications in your
+                        Gmail. Try syncing again or add applications manually.
                       </p>
                     </div>
                   </div>

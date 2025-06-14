@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Upload, X, Video } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
 interface VideoUploadProps {

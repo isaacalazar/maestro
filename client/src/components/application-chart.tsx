@@ -7,7 +7,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -75,7 +74,7 @@ export function ApplicationChart({ jobs = [] }: ApplicationChartProps) {
         const date = new Date(job.applied_date);
         const monthKey = date.toLocaleDateString("en-US", { month: "short" });
         monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
-      } catch (error) {
+      } catch {
         console.warn("Invalid date:", job.applied_date);
       }
     });
@@ -103,17 +102,6 @@ export function ApplicationChart({ jobs = [] }: ApplicationChartProps) {
       }))
       .filter((item) => item.applications > 0); // Only show months with applications
   }, [jobs]);
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-[#252525] border border-[#333333] rounded-lg p-3 shadow-lg">
-          <p className="font-medium text-sm text-white">{`${payload[0].name}: ${payload[0].value}`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   // Show empty state if no data
   if (jobs.length === 0) {
@@ -202,25 +190,22 @@ export function ApplicationChart({ jobs = [] }: ApplicationChartProps) {
               data={statusData}
               cx="50%"
               cy="50%"
-              innerRadius={windowWidth < 768 ? 40 : 60}
-              outerRadius={windowWidth < 768 ? 80 : 100}
+              innerRadius={windowWidth < 640 ? 40 : 60}
+              outerRadius={windowWidth < 640 ? 80 : 100}
               paddingAngle={2}
               dataKey="value"
-              label={({ name, percent }) =>
-                `${name} ${(percent * 100).toFixed(0)}%`
-              }
-              labelLine={false}
             >
               {statusData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
             <Legend
-              layout="horizontal"
               verticalAlign="bottom"
-              align="center"
+              height={36}
               formatter={(value) => (
-                <span className="text-[#e6e6e6]">{value}</span>
+                <span style={{ color: "#e6e6e6", fontSize: "14px" }}>
+                  {value}
+                </span>
               )}
             />
           </PieChart>

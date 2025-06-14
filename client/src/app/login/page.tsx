@@ -7,8 +7,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 
-import { useRouter } from "next/navigation";
-import { loginUser } from "@/lib/auth";
 import { login } from "./actions";
 
 export default function LoginPage() {
@@ -17,8 +15,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  //const { signInNewUser } = UserAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,12 +22,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const result = await login(email, password);
-    } catch (error: any) {
+      await login(email, password);
+    } catch (error: unknown) {
       console.error("Login error:", error);
-      setError(
-        error.message || "Failed to login. Please check your credentials."
-      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to login. Please check your credentials.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +132,7 @@ export default function LoginPage() {
 
             <div className="text-center mt-6">
               <p className="text-zinc-400">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/signup"
                   className="text-[#9333EA] hover:text-[#7e22ce] transition-colors"
@@ -170,9 +168,10 @@ export default function LoginPage() {
                   </div>
                 </div>
                 <p className="text-zinc-300 mb-6">
-                  "Maestro has completely transformed how I manage my internship
-                  applications. I used to miss important emails and deadlines,
-                  but now everything is organized in one place."
+                  &ldquo;Maestro has completely transformed how I manage my
+                  internship applications. I used to miss important emails and
+                  deadlines, but now everything is organized in one
+                  place.&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="flex -space-x-2 mr-4">

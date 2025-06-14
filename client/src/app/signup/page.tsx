@@ -68,9 +68,13 @@ export default function SignupPage() {
 
       // Success - redirect to login page
       router.push("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Signup error:", error);
-      setError(error?.message || "An unexpected error occurred.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

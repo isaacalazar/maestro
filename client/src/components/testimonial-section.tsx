@@ -5,7 +5,7 @@ export function TestimonialSection() {
       role: "Computer Science Student, Stanford",
       image: "/placeholder.svg?height=100&width=100",
       quote:
-        "Maestro saved me so much time during my internship search. I was able to apply to twice as many positions because I wasn't constantly checking my email for updates.",
+        "Maestro saved me so much time during my internship search. I was able to apply to twice as many positions because I wasn&apos;t constantly checking my email for updates.",
       bgColor: "bg-[#0f172a]", // dark blue
     },
     {
@@ -13,7 +13,7 @@ export function TestimonialSection() {
       role: "Engineering Student, MIT",
       image: "/placeholder.svg?height=100&width=100",
       quote:
-        "The automatic status updates are a game changer. I no longer have to manually track which companies have responded and which haven't.",
+        "The automatic status updates are a game changer. I no longer have to manually track which companies have responded and which haven&apos;t.",
       bgColor: "bg-[#1e1b4b]", // indigo/purple
     },
     {
@@ -21,7 +21,7 @@ export function TestimonialSection() {
       role: "Business Student, NYU",
       image: "/placeholder.svg?height=100&width=100",
       quote:
-        "As someone who applied to over 50 internships, Maestro was essential for keeping everything organized. I wouldn't have landed my dream internship without it.",
+        "As someone who applied to over 50 internships, Maestro was essential for keeping everything organized. I wouldn&apos;t have landed my dream internship without it.",
       bgColor: "bg-[#292524]", // brown
     },
     {
@@ -53,7 +53,9 @@ export function TestimonialSection() {
               className={`${testimonial.bgColor} rounded-xl p-6 shadow-xl`}
             >
               <div className="mb-6">
-                <p className="text-zinc-300 mb-6">"{testimonial.quote}"</p>
+                <p className="text-zinc-300 mb-6">
+                  &ldquo;{testimonial.quote}&rdquo;
+                </p>
                 <div className="flex items-start gap-4">
                   <div>
                     <h4 className="font-semibold">{testimonial.name}</h4>
