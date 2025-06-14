@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Briefcase, CheckCircle } from "lucide-react";
+import { Mail, Briefcase, CheckCircle, Sparkles, Zap, Bot } from "lucide-react";
 import { LandingHeader } from "@/components/landing-header";
 import { FeatureCard } from "@/components/feature-card";
 import { HeroSection } from "@/components/hero-section";
@@ -34,17 +34,32 @@ export default function Home() {
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             <FeatureCard
-              icon={<Mail className="h-8 w-8 text-[#9333EA]" />}
+              icon={
+                <div className="relative">
+                  <Mail className="h-8 w-8 text-[#9333EA] relative z-10" />
+                  <Sparkles className="h-4 w-4 text-[#a855f7] absolute -top-1 -right-1 animate-pulse" />
+                </div>
+              }
               title="Email Integration"
               description="Automatically scan your inbox for internship updates and status changes. Never miss an important email again."
             />
             <FeatureCard
-              icon={<Briefcase className="h-8 w-8 text-[#9333EA]" />}
+              icon={
+                <div className="relative">
+                  <Briefcase className="h-8 w-8 text-[#9333EA] relative z-10" />
+                  <Zap className="h-4 w-4 text-[#7c3aed] absolute -bottom-1 -left-1 animate-bounce" />
+                </div>
+              }
               title="Application Tracking"
               description="Keep all your internship applications in one place with real-time status updates and important deadlines."
             />
             <FeatureCard
-              icon={<CheckCircle className="h-8 w-8 text-[#9333EA]" />}
+              icon={
+                <div className="relative">
+                  <CheckCircle className="h-8 w-8 text-[#9333EA] relative z-10" />
+                  <Bot className="h-4 w-4 text-[#8b5cf6] absolute -top-1 -left-1 animate-pulse delay-300" />
+                </div>
+              }
               title="Smart Status Updates"
               description="Our AI automatically categorizes emails and updates your application statuses without any manual work."
             />
@@ -65,22 +80,25 @@ export default function Home() {
               with Maestro.
             </p>
             <div className="flex flex-col sm:flex-row gap-6">
-              <button className="relative inline-flex min-w-max px-6 py-3 justify-center items-center text-xl font-medium border border-[#8043C8] rounded-lg transition-[background-size,box-shadow] duration-[150ms] ease-in-out [--c1:#B301B3] [--c2:#381DBD] [--c3:#381dbd] [--rx:18px] [background-image:radial-gradient(134.26%_244.64%_at_42.92%_-80.36%,var(--c1)_25.45%,var(--c2)_100%)] [background-size:100%_100%] hover:bg-[length:100%_200%] hover:shadow-[0px_0px_8px_0px_rgba(180,40,180,0.35),0px_0px_24px_0px_rgba(102,43,223,0.35)] active:[--c1:#9A059A] active:[--c2:#2409A9] active:scale-95 active:bg-[length:100%_100%] active:shadow-[0px_0px_11.7px_0px_rgba(180,40,180,0.50),0px_0px_28.8px_0px_rgba(102,43,223,0.50)] focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-600">
+              <Link
+                href="/login"
+                className="relative inline-flex min-w-max px-6 py-3 justify-center items-center text-xl font-medium border border-[#8043C8] rounded-lg transition-[background-size,box-shadow] duration-[150ms] ease-in-out [--c1:#B301B3] [--c2:#381DBD] [--c3:#381dbd] [--rx:18px] [background-image:radial-gradient(134.26%_244.64%_at_42.92%_-80.36%,var(--c1)_25.45%,var(--c2)_100%)] [background-size:100%_100%] hover:bg-[length:100%_200%] hover:shadow-[0px_0px_8px_0px_rgba(180,40,180,0.35),0px_0px_24px_0px_rgba(102,43,223,0.35)] active:[--c1:#9A059A] active:[--c2:#2409A9] active:scale-95 active:bg-[length:100%_100%] active:shadow-[0px_0px_11.7px_0px_rgba(180,40,180,0.50),0px_0px_28.8px_0px_rgba(102,43,223,0.50)] focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-600"
+              >
                 Get Started Free
-              </button>
-              <button className="primary-button-outline">
+              </Link>
+              <Link href="#footer" className="primary-button-outline">
                 See How It Works
-              </button>
+              </Link>
             </div>
           </div>
         </section>
 
-        <footer className="border-t border-zinc-800 py-12 px-4 md:px-6">
+        <footer
+          id="footer"
+          className="border-t border-zinc-800 py-12 px-4 md:px-6"
+        >
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-6 md:mb-0">
-              <div className="h-8 w-8 rounded-full bg-[#9333EA] mr-2 flex items-center justify-center">
-                <span className="font-bold text-white">M</span>
-              </div>
               <span className="font-bold text-xl">Maestro</span>
             </div>
             <div className="flex gap-8">

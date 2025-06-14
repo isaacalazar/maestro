@@ -44,12 +44,13 @@ class EmailClassifier:
             "your application for", "position you applied", "role you applied", 
             "we received your application", "application status", 
             "selected to move forward", "move forward in the recruitment",
-            "invite you to interview", "invite you to an interview",
+            "invite you to interview", "invite you to an interview", "invite you to the next step",
             "would like to schedule an interview", "would like to discuss your application",
-            "interview for the position", "next steps in the hiring process",
-            "schedule a time to discuss", "interview with our team",
+            "interview for the position", "next steps in the hiring process", "next step of our recruitment",
+            "schedule a time to discuss", "interview with our team", "schedule a technical interview",
             "excited to offer", "pleased to offer", "happy to offer", "offer you the position",
-            "job offer", "offer of employment", "confirm your acceptance", "welcoming you to the team"
+            "job offer", "offer of employment", "confirm your acceptance", "welcoming you to the team",
+            "thank you for applying to", "we've reviewed your application"
         ]
         
         has_application_indicators = any(indicator in text_combined for indicator in application_indicators)
@@ -113,7 +114,14 @@ class EmailClassifier:
             "job offer for position I applied to"
         ]
         
-        if top_category in application_types and confidence > 0.55:  # Lowered from 0.6 to 0.55 to catch more interviews
+        # Lower threshold for job offers since they're critical to catch
+        if top_category == "job offer for position I applied to" and confidence > 0.35:
+            print(f"   ✅ Classified as job offer (lower threshold)")
+            return True
+        elif top_category == "invitation to interview for job I applied to" and confidence > 0.40:
+            print(f"   ✅ Classified as interview invitation (lower threshold)")
+            return True
+        elif top_category in application_types and confidence > 0.55:  # Higher threshold for other types
             print(f"   ✅ Classified as actual application response")
             return True
         
@@ -235,14 +243,22 @@ class EmailClassifier:
         
         # Common company name patterns in job emails
         company_patterns = [
-            r'(?:internship|position|role|job)\s+at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            # More specific patterns for offers and interviews
+            r'position.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'internship.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'role.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'job.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            # Signature patterns
+            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting\s+team',
+            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+team',
+            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+hr',
+            # Generic patterns (keep as fallback)
             r'thank you for applying to.*?(?:internship|position|role)\s+at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
             r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:internship|position|role)',
-            r'(?:at|from|with|for|by)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})(?:\s+team|\s+recruiting|\s+hr|\.|,|\s)',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:recruiting|team|hr|hiring|careers)',
+            r'(?:from|with|for|by)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})(?:\s+team|\s+recruiting|\s+hr|\.|,|\s)',
+            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:recruiting|hiring|careers)',
             r'we\'re.*?from\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
             r'best regards,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting\s+team',
         ]
         
         # Look for company names in original case-sensitive text
@@ -260,7 +276,8 @@ class EmailClassifier:
                     'application', 'position', 'role', 'internship', 'job', 'opportunity',
                     'interview', 'technical', 'phone', 'video', 'online', 'best', 'regards',
                     'sincerely', 'yours', 'kind', 'looking', 'forward', 'please', 'let',
-                    'know', 'time', 'schedule', 'availability', 'convenient'
+                    'know', 'time', 'schedule', 'availability', 'convenient', 'offer', 'of',
+                    'excited', 'to', 'pleased', 'happy', 'welcome', 'addition', 'great'
                 ]
                 
                 if (len(company) >= 3 and 

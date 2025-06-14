@@ -29,9 +29,6 @@ export function LandingHeader() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-[#9333EA] mr-2 flex items-center justify-center">
-                <span className="font-bold text-white">M</span>
-              </div>
               <span className="font-bold text-xl">Maestro</span>
             </Link>
           </div>
@@ -55,26 +52,21 @@ export function LandingHeader() {
             >
               How It Works
             </Link>
-            <Link
-              href="#pricing"
-              className="text-zinc-400 hover:text-white transition-colors text-sm"
-            >
-              Pricing
-            </Link>
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link className="primary-button-outline" href="/login">
+            <Link
+              className="text-zinc-400 hover:text-white font-medium px-6 py-2.5 rounded-lg border border-zinc-700 hover:border-zinc-600 transition-all duration-200"
+              href="/login"
+            >
               Log in
             </Link>
-            <div className="relative">
-              <Link className="primary-button" href="signup">
+            <Link
+              className="bg-[#9333EA] hover:bg-[#7e22ce] text-white font-medium px-6 py-2.5 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#9333EA]/25"
+              href="/signup"
+            >
                 Sign up
               </Link>
-              <div className="absolute -top-1 -right-1 bg-[#9333EA] text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full">
-                PRO
-              </div>
-            </div>
           </div>
 
           <button
@@ -106,12 +98,6 @@ export function LandingHeader() {
               className="block text-zinc-400 hover:text-white transition-colors"
             >
               How It Works
-            </Link>
-            <Link
-              href="#pricing"
-              className="block text-zinc-400 hover:text-white transition-colors"
-            >
-              Pricing
             </Link>
             <div className="pt-4 flex flex-col space-y-2">
               <Link

@@ -23,6 +23,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Check if user is already connected and fetch jobs on mount
   useEffect(() => {
@@ -187,6 +188,18 @@ export default function DashboardPage() {
     }
   };
 
+  // Filter jobs based on search query
+  const filteredJobs = jobs.filter((job) => {
+    if (!searchQuery.trim()) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      job.company.toLowerCase().includes(query) ||
+      job.position.toLowerCase().includes(query) ||
+      job.status.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="min-h-screen bg-[#191919] text-[#e6e6e6] flex">
       <DashboardSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
@@ -214,6 +227,8 @@ export default function DashboardPage() {
                     type="text"
                     placeholder="Search applications..."
                     className="pl-10 pr-4 py-2 bg-[#252525] border border-[#333333] rounded-md focus:outline-none focus:ring-1 focus:ring-[#9333EA] w-full md:w-64 text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <Link
@@ -230,14 +245,14 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
               <StatsCard
                 title="Total Applications"
-                value={jobs.length.toString()}
+                value={filteredJobs.length.toString()}
                 icon={<Briefcase className="h-5 w-5 text-[#9333EA]" />}
                 change=""
                 positive={true}
               />
               <StatsCard
                 title="Interviews Scheduled"
-                value={jobs
+                value={filteredJobs
                   .filter((job) => job.status === "interviewing")
                   .length.toString()}
                 icon={<Calendar className="h-5 w-5 text-[#9333EA]" />}
@@ -246,7 +261,7 @@ export default function DashboardPage() {
               />
               <StatsCard
                 title="Pending Responses"
-                value={jobs
+                value={filteredJobs
                   .filter((job) => job.status === "applied")
                   .length.toString()}
                 icon={<Clock className="h-5 w-5 text-[#9333EA]" />}
@@ -255,7 +270,7 @@ export default function DashboardPage() {
               />
               <StatsCard
                 title="Offers Received"
-                value={jobs
+                value={filteredJobs
                   .filter((job) => job.status === "offered")
                   .length.toString()}
                 icon={<Briefcase className="h-5 w-5 text-[#9333EA]" />}
@@ -277,19 +292,29 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-                <ApplicationChart jobs={jobs} />
+                <ApplicationChart jobs={filteredJobs} />
               </div>
             </div>
 
             {/* Applications Table */}
             <div className="bg-[#252525] border border-[#333333] rounded-md overflow-hidden">
               <div className="p-6 border-b border-[#333333]">
-                <h2 className="text-lg font-medium text-white">Applications</h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-white">
+                    Applications
+                  </h2>
+                  {searchQuery.trim() && (
+                    <p className="text-sm text-[#a3a3a3]">
+                      {filteredJobs.length} of {jobs.length} applications
+                    </p>
+                  )}
+                </div>
               </div>
-              <ApplicationTable jobs={jobs} />
+              <ApplicationTable jobs={filteredJobs} />
             </div>
 
-            {(!connected || (connected && jobs.length === 0)) && (
+            {/* Not connected at all */}
+            {!connected && (
               <div className="bg-[#252525] border border-[#333333] rounded-lg p-6 mt-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -301,9 +326,7 @@ export default function DashboardPage() {
                         Connect Your Email
                       </h3>
                       <p className="text-[#a3a3a3] text-sm">
-                        {connected && jobs.length === 0
-                          ? "Re-sync your Gmail to import applications"
-                          : "Automatically import job applications from your Gmail"}
+                        Automatically import job applications from your Gmail
                       </p>
                     </div>
                   </div>
@@ -312,16 +335,50 @@ export default function DashboardPage() {
                     disabled={loading}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium disabled:opacity-50 transition-colors whitespace-nowrap"
                   >
-                    {loading
-                      ? "Connecting..."
-                      : connected
-                      ? "Re-connect"
-                      : "Connect Google"}
+                    {loading ? "Connecting..." : "Connect Google"}
                   </button>
                 </div>
               </div>
             )}
 
+            {/* Connected but no applications found */}
+            {connected && jobs.length === 0 && (
+              <div className="bg-[#252525] border border-[#333333] rounded-lg p-6 mt-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-yellow-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-white">
+                        No Applications Found
+                      </h3>
+                      <p className="text-[#a3a3a3] text-sm">
+                        We couldn't find any job applications in your Gmail. Try
+                        syncing again or add applications manually.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={syncEmails}
+                      disabled={syncing}
+                      className="bg-[#9333EA] hover:bg-[#7e22ce] text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 transition-colors text-sm"
+                    >
+                      {syncing ? "Syncing..." : "Sync Again"}
+                    </button>
+                    <button
+                      onClick={disconnectGoogleAccount}
+                      className="text-sm text-[#a3a3a3] hover:text-white underline whitespace-nowrap"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Connected with applications */}
             {connected && jobs.length > 0 && (
               <div className="bg-[#252525] border border-[#333333] rounded-lg p-6 mt-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

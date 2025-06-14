@@ -10,10 +10,7 @@ import os
 
 router = APIRouter()
 
-# Helper function to get current user (placeholder for authentication)
 async def get_current_user():
-    # TODO: Implement proper authentication
-    # For now, get the first user from the database (or most recent)
     try:
         users_response = supabase.table("users").select("id, email").order("created_at", desc=True).limit(1).execute()
         if users_response.data:

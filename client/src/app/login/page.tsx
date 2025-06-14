@@ -53,9 +53,6 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center mb-8">
-            <div className="h-10 w-10 rounded-full bg-[#9333EA] mr-3 flex items-center justify-center">
-              <span className="font-bold text-white text-xl">M</span>
-            </div>
             <h1 className="text-2xl font-bold">Maestro</h1>
           </div>
 

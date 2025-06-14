@@ -1,17 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  Bell,
-  Menu,
-  ChevronDown,
-  LogOut,
-  User,
-  Settings,
-  HelpCircle,
-} from "lucide-react";
+import { Menu, ChevronDown, LogOut, User, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,12 +18,46 @@ interface DashboardHeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
+interface UserData {
+  name?: string;
+  email?: string;
+}
+
 export function DashboardHeader({
   sidebarOpen,
   setSidebarOpen,
 }: DashboardHeaderProps) {
-  const [notifications, setNotifications] = useState(3);
+  const [userData, setUserData] = useState<UserData>({});
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (error) {
+          console.error("Error fetching user:", error);
+          return;
+        }
+
+        if (user) {
+          setUserData({
+            name:
+              user.user_metadata?.name || user.email?.split("@")[0] || "User",
+            email: user.email || "No email",
+          });
+        }
+      } catch (error) {
+        console.error("Error in fetchUserData:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -68,23 +94,6 @@ export function DashboardHeader({
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Help */}
-          <button className="h-8 w-8 flex items-center justify-center rounded-md text-[#a3a3a3] hover:text-white hover:bg-[#252525]">
-            <HelpCircle className="h-4 w-4" />
-          </button>
-
-          {/* Notifications */}
-          <div className="relative">
-            <button className="h-8 w-8 flex items-center justify-center rounded-md text-[#a3a3a3] hover:text-white hover:bg-[#252525]">
-              <Bell className="h-4 w-4" />
-              {notifications > 0 && (
-                <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#9333EA] text-[10px] font-medium flex items-center justify-center">
-                  {notifications}
-                </span>
-              )}
-            </button>
-          </div>
-
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -106,9 +115,11 @@ export function DashboardHeader({
               className="w-56 bg-[#252525] border-[#333333] text-white"
             >
               <div className="px-4 py-3 border-b border-[#333333]">
-                <p className="text-sm font-medium">Alex Johnson</p>
+                <p className="text-sm font-medium">
+                  {userData.name || "Loading..."}
+                </p>
                 <p className="text-xs text-[#a3a3a3] mt-1">
-                  alex.johnson@example.com
+                  {userData.email || "Loading..."}
                 </p>
               </div>
               <DropdownMenuItem className="hover:bg-[#333333] hover:text-white cursor-pointer">

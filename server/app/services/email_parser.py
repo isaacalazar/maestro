@@ -220,7 +220,7 @@ def classify_email(email_data: Dict) -> Dict:
         company = get_email_classifier().extract_company_from_email(sender)
         if not company:
             print(f"   ❌ Could not extract valid company name from content or sender")
-            return None
+        return None
     
     # Extract position using improved patterns
     position = get_email_classifier().extract_position_from_content(subject, body)

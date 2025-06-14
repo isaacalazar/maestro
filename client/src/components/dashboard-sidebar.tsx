@@ -47,9 +47,6 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
             }`}
           >
             <Link href="/dashboard" className="flex items-center">
-              <div className="h-8 w-8 rounded-md bg-[#9333EA] flex items-center justify-center">
-                <span className="font-medium text-white">M</span>
-              </div>
               {open && (
                 <span className="ml-2 font-medium text-white">Maestro</span>
               )}

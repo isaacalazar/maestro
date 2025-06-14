@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export function TestimonialSection() {
   const testimonials = [
     {
@@ -55,18 +53,8 @@ export function TestimonialSection() {
               className={`${testimonial.bgColor} rounded-xl p-6 shadow-xl`}
             >
               <div className="mb-6">
-                <div className="h-10 w-40 bg-zinc-800/50 rounded-md mb-4"></div>
                 <p className="text-zinc-300 mb-6">"{testimonial.quote}"</p>
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0">
-                    <Image
-                      src={testimonial.image || "/placeholder.svg"}
-                      alt={testimonial.name}
-                      width={48}
-                      height={48}
-                      className="object-cover"
-                    />
-                  </div>
                   <div>
                     <h4 className="font-semibold">{testimonial.name}</h4>
                     <p className="text-sm text-zinc-400">{testimonial.role}</p>

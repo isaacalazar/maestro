@@ -6,11 +6,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, ArrowLeft, Check } from "lucide-react";
-//import { UserAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { signupUser } from "@/lib/auth";
-import { login, signup } from "../login/actions";
 
 enum PasswordStrength {
   NONE = 0,
@@ -42,7 +39,6 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  //const { signUpNewUser } = UserAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,10 +52,24 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
-      await signup(email, password);
-      //router.push("/dashboard");
+      const { error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            name: name,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Success - redirect to login page
+      router.push("/login");
     } catch (error: any) {
-      console.error("Caught unexpected signup error:", error);
+      console.error("Signup error:", error);
       setError(error?.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
@@ -100,9 +110,6 @@ export default function SignupPage() {
           </div>
 
           <div className="flex items-center mb-8">
-            <div className="h-10 w-10 rounded-full bg-[#9333EA] mr-3 flex items-center justify-center">
-              <span className="font-bold text-white text-xl">M</span>
-            </div>
             <h1 className="text-2xl font-bold">Maestro</h1>
           </div>
 
@@ -260,35 +267,15 @@ export default function SignupPage() {
                     <p>{email}</p>
                   </div>
                   <div className="pt-4 border-t border-zinc-800">
-                    <p className="text-sm text-zinc-400 mb-2">
-                      By creating an account, you agree to our:
-                    </p>
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <input
                           type="checkbox"
-                          id="terms"
-                          className="h-4 w-4 rounded border-zinc-600 text-[#9333EA] focus:ring-[#9333EA]"
-                          required
-                        />
-                        <label htmlFor="terms" className="ml-2 text-sm">
-                          <span>Terms of Service and </span>
-                          <Link
-                            href="#"
-                            className="text-[#9333EA] hover:text-[#7e22ce]"
-                          >
-                            Privacy Policy
-                          </Link>
-                        </label>
-                      </div>
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id="marketing"
+                          id="feedback"
                           className="h-4 w-4 rounded border-zinc-600 text-[#9333EA] focus:ring-[#9333EA]"
                         />
-                        <label htmlFor="marketing" className="ml-2 text-sm">
-                          I agree to receive marketing emails
+                        <label htmlFor="feedback" className="ml-2 text-sm">
+                          I agree to receive surveys and feedback forms
                         </label>
                       </div>
                     </div>
