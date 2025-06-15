@@ -13,7 +13,8 @@ router = APIRouter()
 # Google OAuth2 configuration
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8000/auth/callback")
+REDIRECT_URI = os.getenv("REDIRECT_URI", "https://maestro-4e43.vercel.app/auth/callback")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://maestro-4e43.vercel.app")
 
 SCOPES = [
     'openid',
@@ -107,7 +108,7 @@ async def google_callback(request: Request):
         await parse_and_classify_emails(credentials, user_id)
         
         # Redirect to frontend dashboard
-        return RedirectResponse(url=f"http://localhost:3000/dashboard?auth=success")
+        return RedirectResponse(url=f"{FRONTEND_URL}/dashboard?auth=success")
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
