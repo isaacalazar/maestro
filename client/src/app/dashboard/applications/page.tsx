@@ -31,13 +31,13 @@ export default function ApplicationsPage() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `https://maestro-production-0a0f.up.railway.app/api/jobs`
+      );
 
       if (response.ok) {
         const data = await response.json();
-        // Ensure data is an array
+
         const jobsArray = Array.isArray(data) ? data : [];
         setJobs(jobsArray);
       } else {

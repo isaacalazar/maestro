@@ -48,6 +48,12 @@ export default function DashboardPage() {
       localStorage.setItem("googleAccountConnected", "true");
       // Clean up URL params
       window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get("auth") === "error") {
+      const errorMessage = urlParams.get("message") || "OAuth failed";
+      console.error("OAuth error:", errorMessage);
+      alert(`Authentication failed: ${decodeURIComponent(errorMessage)}`);
+      // Clean up URL params
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -83,10 +89,7 @@ export default function DashboardPage() {
       );
 
       const response = await fetch(
-        `https://maestro-production-0a0f.up.railway.app/api/jobs`,
-        {
-          credentials: "include",
-        }
+        `https://maestro-production-0a0f.up.railway.app/api/jobs`
       );
 
       console.log("Jobs API response:", response.status, response.statusText);
@@ -135,7 +138,6 @@ export default function DashboardPage() {
         `https://maestro-production-0a0f.up.railway.app/api/sync-emails`,
         {
           method: "POST",
-          credentials: "include",
         }
       );
 

@@ -50,23 +50,25 @@ export default function NewApplicationPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          company: formData.company,
-          position: formData.position,
-          status: formData.status,
-          applied_date: formData.applied_date,
-          location: formData.location || null,
-          salary: formData.salary || null,
-          job_url: formData.job_url || null,
-          notes: formData.notes || null,
-        }),
-      });
+      const response = await fetch(
+        `https://maestro-production-0a0f.up.railway.app/api/jobs`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            company: formData.company,
+            position: formData.position,
+            status: formData.status,
+            applied_date: formData.applied_date,
+            location: formData.location || null,
+            salary: formData.salary || null,
+            job_url: formData.job_url || null,
+            notes: formData.notes || null,
+          }),
+        }
+      );
 
       if (response.ok) {
         router.push("/dashboard/applications");
