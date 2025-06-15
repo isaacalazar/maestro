@@ -14,8 +14,8 @@ import {
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+// const API_BASE_URL =
+//   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export default function NewApplicationPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
