@@ -15,10 +15,13 @@ interface Job {
   applied_date: string;
 }
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
 export default function ApplicationsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
   // Fetch jobs on component mount
@@ -28,13 +31,15 @@ export default function ApplicationsPage() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/jobs", {
+      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
         credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
-        setJobs(Array.isArray(data) ? data : []);
+        // Ensure data is an array
+        const jobsArray = Array.isArray(data) ? data : [];
+        setJobs(jobsArray);
       } else {
         console.error("Failed to fetch jobs");
         setJobs([]);
@@ -45,15 +50,16 @@ export default function ApplicationsPage() {
     }
   };
 
-  // Filter jobs based on search term and status
+  // Filter jobs based on search query
   const filteredJobs = jobs.filter((job) => {
-    const matchesSearch =
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.position.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!searchQuery.trim()) return true;
 
-    const matchesStatus = filterStatus === "all" || job.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
+    const query = searchQuery.toLowerCase();
+    return (
+      job.company.toLowerCase().includes(query) ||
+      job.position.toLowerCase().includes(query) ||
+      job.status.toLowerCase().includes(query)
+    );
   });
 
   const statusCounts = {
@@ -93,9 +99,9 @@ export default function ApplicationsPage() {
                   <input
                     type="text"
                     placeholder="Search applications..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 py-2 bg-[#252525] border border-[#333333] rounded-md focus:outline-none focus:ring-1 focus:ring-[#9333EA] w-full md:w-64 text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <Link
@@ -180,7 +186,7 @@ export default function ApplicationsPage() {
             <div className="bg-[#252525] border border-[#333333] rounded-md overflow-hidden">
               <div className="p-6 border-b border-[#333333] flex justify-between items-center">
                 <h2 className="text-lg font-medium text-white">
-                  {searchTerm || filterStatus !== "all"
+                  {searchQuery || filterStatus !== "all"
                     ? `Filtered Applications (${filteredJobs.length})`
                     : "All Applications"}
                 </h2>

@@ -17,6 +17,9 @@ interface Job {
   applied_date: string;
 }
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -59,7 +62,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       // Call backend to initiate OAuth
-      const response = await fetch("http://localhost:8000/auth/google-login");
+      const response = await fetch(`${API_BASE_URL}/auth/google-login`);
       const data = await response.json();
 
       // Redirect to Google OAuth
@@ -72,11 +75,9 @@ export default function DashboardPage() {
 
   const fetchJobs = async () => {
     try {
-      console.log(
-        "Attempting to fetch jobs from: http://localhost:8000/api/jobs"
-      );
+      console.log(`Attempting to fetch jobs from: ${API_BASE_URL}/api/jobs`);
 
-      const response = await fetch("http://localhost:8000/api/jobs", {
+      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
         credentials: "include",
       });
 
@@ -122,7 +123,7 @@ export default function DashboardPage() {
       setSyncing(true);
       console.log("Manually syncing emails...");
 
-      const response = await fetch("http://localhost:8000/api/sync-emails", {
+      const response = await fetch(`${API_BASE_URL}/api/sync-emails`, {
         method: "POST",
         credentials: "include",
       });
