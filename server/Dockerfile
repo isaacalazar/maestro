@@ -12,23 +12,22 @@ WORKDIR /app
 COPY requirements-light.txt .
 
 # Install CPU-only torch first, then other dependencies
-RUN pip install --no-cache-dir --user \
+RUN pip install --no-cache-dir \
     torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir --user -r requirements-light.txt
+    pip install --no-cache-dir -r requirements-light.txt
 
 # Final stage
 FROM python:3.11-slim
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
-
-# Make sure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
-
 WORKDIR /app
 
+# Copy dependencies from builder image
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy app code
 COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
