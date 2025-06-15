@@ -19,6 +19,7 @@ interface Job {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+console.log(API_BASE_URL);
 
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -62,7 +63,9 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       // Call backend to initiate OAuth
-      const response = await fetch(`${API_BASE_URL}/auth/google-login`);
+      const response = await fetch(
+        `https://maestro-production-0a0f.up.railway.app/auth/google-login`
+      );
       const data = await response.json();
 
       // Redirect to Google OAuth
@@ -75,11 +78,16 @@ export default function DashboardPage() {
 
   const fetchJobs = async () => {
     try {
-      console.log(`Attempting to fetch jobs from: ${API_BASE_URL}/api/jobs`);
+      console.log(
+        `Attempting to fetch jobs from: https://maestro-production-0a0f.up.railway.app/api/jobs`
+      );
 
-      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `https://maestro-production-0a0f.up.railway.app/api/jobs`,
+        {
+          credentials: "include",
+        }
+      );
 
       console.log("Jobs API response:", response.status, response.statusText);
 
@@ -123,10 +131,13 @@ export default function DashboardPage() {
       setSyncing(true);
       console.log("Manually syncing emails...");
 
-      const response = await fetch(`${API_BASE_URL}/api/sync-emails`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `https://maestro-production-0a0f.up.railway.app/api/sync-emails`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
