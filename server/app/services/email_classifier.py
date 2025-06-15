@@ -1,41 +1,24 @@
 import re
 from typing import Dict, Optional
-from transformers import pipeline
+# from transformers import pipeline  # Commented out to avoid loading heavy model
 from app.models.job import ApplicationStatus
 from datetime import datetime
 
 class EmailClassifier:
-    """NLP-based email classifier with strict filtering for interview detection"""
+    """Lightweight email classifier using regex patterns and keywords only"""
     
     def __init__(self):
-        print("🤖 Loading pretrained classification model...")
-        self.classifier = pipeline(
-            "zero-shot-classification",
-            model="facebook/bart-large-mnli",
-            device=-1
-        )
-        print("✅ Model loaded successfully!")
-        
-        self.email_categories = [
-            "response to my job application",
-            "invitation to interview for job I applied to",
-            "rejection of my job application", 
-            "job offer for position I applied to",
-            "confirmation that my application was received",
-            "generic recruitment email",
-            "spam or promotional email"
-        ]
-        
-        self.status_categories = [
-            "confirmation that application was received",
-            "invitation to schedule an interview",
-            "rejection of application", 
-            "job offer with employment terms",
-            "general application acknowledgment"
-        ]
+        print("🤖 Initializing lightweight email classifier...")
+        # Commented out heavy model loading
+        # self.classifier = pipeline(
+        #     "zero-shot-classification",
+        #     model="facebook/bart-large-mnli",
+        #     device=-1
+        # )
+        print("✅ Lightweight classifier ready!")
 
     def is_actual_application(self, subject: str, body: str, sender: str) -> bool:
-        """Strictly determine if email is an interview response for an actual application"""
+        """Determine if email is an application response using lightweight methods"""
         
         text_combined = f"{subject} {body}".lower()
         
@@ -97,39 +80,11 @@ class EmailClassifier:
                 print(f"   ❌ Invalid or generic sender domain and no company in content")
                 return False
         
-        # CHECK 5: Use NLP with higher confidence threshold
-        email_text = f"Subject: {subject}\n\nFrom: {sender}\n\n{body[:500]}"
-        print(f"   🤖 Using pretrained model to classify email type...")
-        
-        result = self.classifier(email_text, self.email_categories)
-        top_category = result['labels'][0]
-        confidence = result['scores'][0]
-        
-        print(f"   📊 Classification: {top_category} (confidence: {confidence:.2f})")
-        
-        application_types = [
-            "invitation to interview for job I applied to",
-            "response to my job application",
-            "confirmation that my application was received",
-            "job offer for position I applied to"
-        ]
-        
-        # Lower threshold for job offers since they're critical to catch
-        if top_category == "job offer for position I applied to" and confidence > 0.35:
-            print(f"   ✅ Classified as job offer (lower threshold)")
-            return True
-        elif top_category == "invitation to interview for job I applied to" and confidence > 0.40:
-            print(f"   ✅ Classified as interview invitation (lower threshold)")
-            return True
-        elif top_category in application_types and confidence > 0.55:  # Higher threshold for other types
-            print(f"   ✅ Classified as actual application response")
-            return True
-        
-        print(f"   ❌ Not classified as application response (low confidence or wrong category)")
-        return False
+        print(f"   ✅ Classified as actual application response (lightweight method)")
+        return True
 
     def classify_application_status(self, subject: str, body: str) -> ApplicationStatus:
-        """Strictly classify application status, prioritizing interview detection"""
+        """Classify application status using keyword matching only"""
         
         text_combined = f"{subject} {body}".lower()
         
@@ -171,27 +126,7 @@ class EmailClassifier:
             print(f"   🎉 Status: OFFERED (keyword match)")
             return ApplicationStatus.OFFERED
         
-        # CHECK 4: Use NLP with high confidence for interviews
-        email_text = f"Subject: {subject}\n\n{body[:500]}"
-        print(f"   🎯 Using pretrained model to classify application status...")
-        
-        result = self.classifier(email_text, self.status_categories)
-        top_status = result['labels'][0]
-        confidence = result['scores'][0]
-        
-        print(f"   📊 Status classification: {top_status} (confidence: {confidence:.2f})")
-        
-        if top_status == "invitation to schedule an interview" and confidence > 0.7:  # Raised from 0.5 to 0.7
-            print(f"   📞 Status: INTERVIEWING (NLP)")
-            return ApplicationStatus.INTERVIEWING
-        elif "rejection" in top_status.lower() and confidence > 0.7:
-            print(f"   😞 Status: REJECTED (NLP)")
-            return ApplicationStatus.REJECTED
-        elif "offer" in top_status.lower() and confidence > 0.7:
-            print(f"   🎉 Status: OFFERED (NLP)")
-            return ApplicationStatus.OFFERED
-        
-        # Default to APPLIED only if no strong evidence
+        # Default to APPLIED
         print(f"   📝 Status: APPLIED (default)")
         return ApplicationStatus.APPLIED
 

@@ -32,3 +32,13 @@ app.include_router(jobs.router, prefix="/api", tags=["jobs"])
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Internship Tracker API"}
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Railway"""
+    try:
+        # Test database connection
+        supabase.table("users").select("id").limit(1).execute()
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
