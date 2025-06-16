@@ -33,7 +33,14 @@ class EmailClassifier:
             "schedule a time to discuss", "interview with our team", "schedule a technical interview",
             "excited to offer", "pleased to offer", "happy to offer", "offer you the position",
             "job offer", "offer of employment", "confirm your acceptance", "welcoming you to the team",
-            "thank you for applying to", "we've reviewed your application"
+            "thank you for applying to", "we've reviewed your application",
+            # Additional patterns for rejection emails
+            "thank you for taking the time to apply", "apply for the", "applied for the",
+            "time to apply for", "for applying for", "for your application",
+            "regarding your application", "concerning your application", "about your application",
+            "will not be moving forward", "regret to inform", "unfortunately", "not selected",
+            "after careful consideration", "competitive selection process",
+            "thank you for your interest in", "appreciate your interest in"
         ]
         
         has_application_indicators = any(indicator in text_combined for indicator in application_indicators)
@@ -48,7 +55,10 @@ class EmailClassifier:
             "node", "backend", "frontend", "fullstack", "devops", "cloud", "aws",
             "azure", "database", "api", "web developer", "mobile developer",
             "internship", "technical role", "engineering role", "product manager",
-            "ux designer", "data analyst", "research scientist"
+            "ux designer", "data analyst", "research scientist",
+            # Additional technical role patterns
+            "software engineering", "engineering intern", "technical intern",
+            "intern", "graduate position", "entry level", "new grad"
         ]
         
         has_technical_indicators = any(indicator in text_combined for indicator in technical_indicators)
@@ -102,11 +112,18 @@ class EmailClassifier:
             print(f"   📞 Status: INTERVIEWING (keyword match)")
             return ApplicationStatus.INTERVIEWING
         
-        # CHECK 2: Rejection keywords
+        # CHECK 2: Rejection keywords (enhanced for better detection)
         rejection_keywords = [
             "unfortunately", "regret to inform", "not selected", "not moving forward", 
             "not the right fit", "other candidates", "will not be proceeding",
-            "thank you for your interest, however", "different direction", "unsuccessful"
+            "thank you for your interest, however", "different direction", "unsuccessful",
+            # Additional rejection patterns
+            "will not be moving forward", "regret to inform you that we will not",
+            "after careful consideration, we regret", "competitive selection process",
+            "not advance to the next stage", "not proceed with your application",
+            "decided not to move forward", "pursue other candidates",
+            "this decision does not reflect negatively", "extremely competitive",
+            "we will not be moving forward with your application"
         ]
         
         if any(keyword in text_combined for keyword in rejection_keywords):
@@ -178,6 +195,10 @@ class EmailClassifier:
         
         # Common company name patterns in job emails
         company_patterns = [
+            # Specific patterns for application emails (including rejections)
+            r'apply.*?for.*?(?:internship|position|role).*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'(?:internship|position|role|job).*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:internship|position|role)',
             # More specific patterns for offers and interviews
             r'position.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
             r'internship.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
@@ -187,13 +208,20 @@ class EmailClassifier:
             r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting\s+team',
             r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+team',
             r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+hr',
+            # Application response patterns
+            r'thank you for applying.*?(?:to|for).*?(?:internship|position|role).*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'thank you for.*?interest.*?in\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            r'appreciate.*?interest.*?in\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
             # Generic patterns (keep as fallback)
-            r'thank you for applying to.*?(?:internship|position|role)\s+at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:internship|position|role)',
             r'(?:from|with|for|by)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})(?:\s+team|\s+recruiting|\s+hr|\.|,|\s)',
             r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:recruiting|hiring|careers)',
             r'we\'re.*?from\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
             r'best regards,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting',
+            # Sincerely signature patterns (common in rejections)
+            r'sincerely,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting\s+team',
+            r'sincerely,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+team',
+            # "encourage you to apply for future opportunities" patterns
+            r'encourage.*?apply.*?future.*?opportunities.*?(?:that match|at)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
         ]
         
         # Look for company names in original case-sensitive text
@@ -212,7 +240,9 @@ class EmailClassifier:
                     'interview', 'technical', 'phone', 'video', 'online', 'best', 'regards',
                     'sincerely', 'yours', 'kind', 'looking', 'forward', 'please', 'let',
                     'know', 'time', 'schedule', 'availability', 'convenient', 'offer', 'of',
-                    'excited', 'to', 'pleased', 'happy', 'welcome', 'addition', 'great'
+                    'excited', 'to', 'pleased', 'happy', 'welcome', 'addition', 'great',
+                    'software', 'engineering', 'engineer', 'developer', 'data', 'science',
+                    'machine', 'learning', 'artificial', 'intelligence', 'future', 'opportunities'
                 ]
                 
                 if (len(company) >= 3 and 
@@ -232,12 +262,56 @@ class EmailClassifier:
         print(f"   💼 Attempting to extract position from content...")
         text_combined = f"{subject} {body}".lower()
         
+        # Look for position patterns in the original case-sensitive text
+        original_text = f"{subject} {body}"
+        
+        # Position extraction patterns
+        position_patterns = [
+            # Full position titles with "for the"
+            r'for the\s+([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))',
+            r'apply.*?for.*?(?:the\s+)?([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))',
+            # Position at company patterns
+            r'([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst)).*?at',
+            # Direct position mentions
+            r'(software\s+engineering\s+internship)',
+            r'(data\s+science\s+internship)', 
+            r'(machine\s+learning\s+engineer)',
+            r'(frontend\s+developer)',
+            r'(backend\s+developer)',
+            r'(fullstack\s+developer)',
+            r'(web\s+developer)',
+            r'(mobile\s+developer)',
+            r'(devops\s+engineer)',
+            r'(cloud\s+engineer)',
+            r'(product\s+manager)',
+            r'(ux\s+designer)',
+            r'(data\s+analyst)',
+            r'(research\s+scientist)',
+        ]
+        
+        for pattern in position_patterns:
+            matches = re.finditer(pattern, original_text, re.IGNORECASE)
+            for match in matches:
+                position = match.group(1).strip()
+                
+                # Clean up the position title
+                position = re.sub(r'\s+', ' ', position)  # Normalize whitespace
+                
+                # Filter out obvious false positives
+                if (len(position) >= 5 and 
+                    not position.lower().startswith(('the ', 'your ', 'our ', 'this ', 'that '))):
+                    
+                    print(f"   ✅ Extracted position: {position.title()}")
+                    return position.title()
+        
+        # Fallback to keyword matching
         position_indicators = [
             "software engineer", "data scientist", "machine learning engineer",
             "frontend developer", "backend developer", "fullstack developer",
             "devops engineer", "cloud engineer", "web developer", "mobile developer",
             "product manager", "ux designer", "data analyst", "research scientist",
-            "technical intern", "engineering intern", "developer intern"
+            "technical intern", "engineering intern", "developer intern",
+            "software engineering", "software development"
         ]
         
         for position in position_indicators:
@@ -245,8 +319,13 @@ class EmailClassifier:
                 print(f"   ✅ Extracted position: {position.title()}")
                 return position.title()
         
-        print(f"   💼 Using default position: Internship")
-        return "Internship"
+        # If internship is mentioned, use that
+        if "internship" in text_combined:
+            print(f"   💼 Using position: Internship")
+            return "Internship"
+        
+        print(f"   💼 Using default position: Software Engineer")
+        return "Software Engineer"
 
 # Global classifier instance
 email_classifier = None
