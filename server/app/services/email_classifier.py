@@ -188,75 +188,148 @@ class EmailClassifier:
         return company
 
     def extract_company_from_content(self, subject: str, body: str) -> Optional[str]:
-        """Extract company name from email content (subject and body)"""
+        """Extract ONLY the core company name - no extra words"""
         
         print(f"   🏢 Attempting to extract company from email content...")
-        text_combined = f"{subject} {body}".lower()
         
-        # Improved company name patterns - more specific to get just company names
-        company_patterns = [
-            # Most specific patterns first - company names in signatures/headers
-            r'sincerely,?\s*(?:the\s+)?([A-Z][a-zA-Z]+)\s+recruiting\s+team',
-            r'best\s+regards,?\s*(?:the\s+)?([A-Z][a-zA-Z]+)\s+recruiting\s+team',
-            r'([A-Z][a-zA-Z]+)\s+recruiting\s+team',
-            r'([A-Z][a-zA-Z]+)\s+team',
-            
-            # Subject line patterns
-            r'^([A-Z][a-zA-Z]+)\s+(?:software|engineering|internship|position)',
-            r'([A-Z][a-zA-Z]+)\s+(?:software\s+engineering|internship|position)\s*[-–]',
-            
-            # "at Company" patterns - most reliable
-            r'(?:internship|position|role|job)\s+at\s+([A-Z][a-zA-Z]+)',
-            r'applying?\s+(?:to|for).*?(?:internship|position|role|job)\s+at\s+([A-Z][a-zA-Z]+)',
-            
-            # "interest in Company" patterns  
-            r'interest\s+in\s+([A-Z][a-zA-Z]+)(?:\s+and|\s*[.\,]|\s*$)',
-            r'thank\s+you\s+for.*?interest.*?in\s+([A-Z][a-zA-Z]+)(?:\s+and|\s*[.\,]|\s*$)',
-            
-            # Fallback patterns
-            r'([A-Z][a-zA-Z]+)\s+(?:recruiting|hiring|careers|hr)(?:\s|$)',
+        # Combine subject and body for searching
+        full_text = f"{subject} {body}"
+        
+        # STEP 1: Look for very specific, reliable patterns first
+        # Pattern 1: "at Company" - most reliable, now with word boundaries
+        at_company_patterns = [
+            r'\bat\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',  # "at Amazon", "at Google", etc. with word boundary
+            r'internship\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'position\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'role\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'working\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])'
         ]
         
-        # Look for company names in original case-sensitive text
-        original_text = f"{subject} {body}"
-        
-        for pattern in company_patterns:
-            matches = re.finditer(pattern, original_text, re.IGNORECASE)
-            for match in matches:
-                company = match.group(1).strip()
-                
-                # Clean company name - remove common trailing words
-                company = re.sub(r'\s+(and|for|the|inc|corp|llc|ltd|team|recruiting|hr)$', '', company, flags=re.IGNORECASE)
+        for pattern in at_company_patterns:
+            matches = re.findall(pattern, full_text)
+            for company in matches:
                 company = company.strip()
-                
-                # Filter out common false positives
-                false_positives = [
-                    'thank', 'you', 'for', 'your', 'the', 'and', 'with', 'from', 'team',
-                    'recruiting', 'we', 'our', 'this', 'that', 'next', 'step', 'process',
-                    'application', 'position', 'role', 'internship', 'job', 'opportunity',
-                    'interview', 'technical', 'phone', 'video', 'online', 'best', 'regards',
-                    'sincerely', 'yours', 'kind', 'looking', 'forward', 'please', 'let',
-                    'know', 'time', 'schedule', 'availability', 'convenient', 'offer', 'of',
-                    'excited', 'to', 'pleased', 'happy', 'welcome', 'addition', 'great',
-                    'software', 'engineering', 'engineer', 'developer', 'data', 'science',
-                    'machine', 'learning', 'artificial', 'intelligence', 'future', 'opportunities'
-                ]
-                
-                # Check if it's a valid company name
-                if (len(company) >= 3 and 
-                    company.lower() not in false_positives and
-                    not company.lower().endswith('ing') and
-                    not re.match(r'^(mr|ms|mrs|dr|prof)\.?$', company.lower()) and
-                    not re.match(r'^(and|for|the|with|from)$', company.lower(), re.IGNORECASE)):
-                    
-                    print(f"   ✅ Found company in content: {company}")
-                    return company.title()
+                if self._is_valid_company_name(company):
+                    print(f"   ✅ Found company via 'at Company' pattern: {company}")
+                    return company
+        
+        # Pattern 2: Company signatures - "Sincerely, Amazon Team"
+        signature_patterns = [
+            r'sincerely,?\s*(?:the\s+)?([A-Z][a-zA-Z]{2,15})(?:\s+team|\s+recruiting|\s*,)',
+            r'best\s+regards,?\s*(?:the\s+)?([A-Z][a-zA-Z]{2,15})(?:\s+team|\s+recruiting|\s*,)',
+            r'([A-Z][a-zA-Z]{2,15})\s+recruiting\s+team',
+            r'([A-Z][a-zA-Z]{2,15})\s+talent\s+team',
+            r'([A-Z][a-zA-Z]{2,15})\s+hr\s+team',
+            r'on\s+behalf\s+of\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])'
+        ]
+        
+        for pattern in signature_patterns:
+            matches = re.findall(pattern, full_text, re.IGNORECASE)
+            for company in matches:
+                company = company.strip()
+                if self._is_valid_company_name(company):
+                    print(f"   ✅ Found company via signature: {company}")
+                    return company
+        
+        # Pattern 3: Subject line patterns - more restrictive
+        subject_patterns = [
+            r'^([A-Z][a-zA-Z]{2,15})\s+(?:software|engineering|internship|position|role)(?:\s|$)',
+            r'([A-Z][a-zA-Z]{2,15})\s+(?:software\s+engineering|internship)\s*[-–]',
+            r'from\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'([A-Z][a-zA-Z]{2,15})\s*[-–]\s*(?:software|engineering|internship|position)',
+            # Add pattern for "Company Software Engineering" format
+            r'^([A-Z][a-zA-Z]{2,15})\s+Software\s+Engineering',
+            r'^([A-Z][a-zA-Z]{2,15})\s+Data\s+Science',
+            r'^([A-Z][a-zA-Z]{2,15})\s+Machine\s+Learning'
+        ]
+        
+        for pattern in subject_patterns:
+            matches = re.findall(pattern, subject)
+            for company in matches:
+                company = company.strip()
+                if self._is_valid_company_name(company):
+                    print(f"   ✅ Found company in subject: {company}")
+                    return company
+        
+        # Pattern 4: Email body context patterns
+        body_patterns = [
+            r'thank\s+you\s+for\s+applying\s+to\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'your\s+application\s+to\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'opportunity\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'career\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])',
+            r'join\s+(?:the\s+)?([A-Z][a-zA-Z]{2,15})\s+team(?:\s|$|[^\w])',
+            r'([A-Z][a-zA-Z]{2,15})\s+is\s+excited\s+to',
+            r'we\s+at\s+([A-Z][a-zA-Z]{2,15})(?:\s|$|[^\w])'
+        ]
+        
+        for pattern in body_patterns:
+            matches = re.findall(pattern, full_text, re.IGNORECASE)
+            for company in matches:
+                company = company.strip()
+                if self._is_valid_company_name(company):
+                    print(f"   ✅ Found company in body context: {company}")
+                    return company
         
         print(f"   ❌ No company found in email content")
         return None
 
+    def _is_valid_company_name(self, company: str) -> bool:
+        """Check if extracted text is a valid company name"""
+        if not company:
+            return False
+            
+        company = company.strip()
+        
+        # Must be reasonable length (3-20 chars)
+        if len(company) < 3 or len(company) > 20:
+            return False
+        
+        # Expanded blacklist of common false positives
+        blacklist = {
+            # Common words
+            'thank', 'you', 'for', 'your', 'the', 'and', 'with', 'from', 'team',
+            'recruiting', 'we', 'our', 'this', 'that', 'next', 'step', 'process',
+            'application', 'position', 'role', 'internship', 'job', 'opportunity',
+            'interview', 'technical', 'phone', 'video', 'online', 'best', 'regards',
+            'sincerely', 'yours', 'kind', 'looking', 'forward', 'please', 'software',
+            'engineering', 'engineer', 'developer', 'data', 'science', 'machine',
+            # Action words that often get captured
+            'apply', 'applying', 'applied', 'contact', 'email', 'send', 'sent',
+            'receive', 'received', 'review', 'reviewed', 'consider', 'decision',
+            'thank you', 'thanks', 'hello', 'dear', 'hi',
+            # Time/status words
+            'update', 'status', 'current', 'future', 'recent', 'new', 'old',
+            'first', 'second', 'third', 'final', 'last', 'next', 'previous',
+            # Generic business words
+            'company', 'business', 'organization', 'group', 'department', 'division',
+            'office', 'headquarters', 'location', 'building', 'campus',
+            # Common false positive patterns
+            'subject', 'regarding', 'concerning', 'about', 'related', 'respect'
+        }
+        
+        if company.lower() in blacklist:
+            return False
+        
+        # Must start with capital letter and contain only letters (no numbers/symbols)
+        if not re.match(r'^[A-Z][a-zA-Z]*$', company):
+            return False
+        
+        # Additional checks for patterns that indicate it's not a company name
+        # Don't allow words that are clearly not company names
+        non_company_patterns = [
+            r'^(Dear|Hello|Hi|Thanks|Thank|Best|Kind|Sincerely|Regards|Please)$',
+            r'^(Software|Engineering|Technical|Interview|Application|Position)$',
+            r'^(Manager|Director|Representative|Coordinator|Specialist)$'
+        ]
+        
+        for pattern in non_company_patterns:
+            if re.match(pattern, company, re.IGNORECASE):
+                return False
+        
+        return True
+
     def extract_position_from_content(self, subject: str, body: str) -> str:
-        """Extract position from email content with fallback to default"""
+        """Extract clean position title - no sentences or extra words"""
         
         print(f"   💼 Attempting to extract position from content...")
         text_combined = f"{subject} {body}".lower()
@@ -264,16 +337,31 @@ class EmailClassifier:
         # Look for position patterns in the original case-sensitive text
         original_text = f"{subject} {body}"
         
-        # Improved position extraction patterns - get just the role title
-        position_patterns = [
-            # Direct, clean position titles (most specific first)
-            r'\b(software\s+engineering?\s+internship)\b',
-            r'\b(data\s+science?\s+internship)\b',
-            r'\b(machine\s+learning\s+engineer)\b',
+        # STEP 1: Look for exact, well-defined position titles first
+        exact_position_patterns = [
+            # Most specific patterns first
+            r'\b(software\s+engineering?\s+intern(?:ship)?)\b',
+            r'\b(data\s+science?\s+intern(?:ship)?)\b',
+            r'\b(machine\s+learning\s+intern(?:ship)?)\b',
+            r'\b(web\s+development\s+intern(?:ship)?)\b',
+            r'\b(frontend\s+(?:engineer|developer)\s+intern(?:ship)?)\b',
+            r'\b(backend\s+(?:engineer|developer)\s+intern(?:ship)?)\b',
+            r'\b(fullstack\s+(?:engineer|developer)\s+intern(?:ship)?)\b',
+            r'\b(mobile\s+(?:engineer|developer)\s+intern(?:ship)?)\b',
+            r'\b(devops\s+intern(?:ship)?)\b',
+            r'\b(cloud\s+engineer\s+intern(?:ship)?)\b',
+            r'\b(product\s+manager\s+intern(?:ship)?)\b',
+            r'\b(ux\s+designer\s+intern(?:ship)?)\b',
+            r'\b(data\s+analyst\s+intern(?:ship)?)\b',
+            r'\b(research\s+intern(?:ship)?)\b',
+            
+            # General role patterns
             r'\b(software\s+engineer)\b',
-            r'\b(frontend\s+developer)\b',
-            r'\b(backend\s+developer)\b',
-            r'\b(fullstack\s+developer)\b',
+            r'\b(data\s+scientist)\b',
+            r'\b(machine\s+learning\s+engineer)\b',
+            r'\b(frontend\s+(?:engineer|developer))\b',
+            r'\b(backend\s+(?:engineer|developer))\b',
+            r'\b(fullstack\s+(?:engineer|developer))\b',
             r'\b(web\s+developer)\b',
             r'\b(mobile\s+developer)\b',
             r'\b(devops\s+engineer)\b',
@@ -281,64 +369,120 @@ class EmailClassifier:
             r'\b(product\s+manager)\b',
             r'\b(ux\s+designer)\b',
             r'\b(data\s+analyst)\b',
-            r'\b(research\s+scientist)\b',
-            
-            # Subject line position patterns (clean extraction)
-            r'^[^-]*?[-–]\s*([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))',
-            r'([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s*[-–]',
-            
-            # "for the X position" patterns
-            r'for\s+the\s+([a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)',
-            r'apply.*?for.*?(?:the\s+)?([a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)',
-            
-            # "X position at" patterns  
-            r'([a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)\s+at',
-            
-            # Generic "internship" as fallback
-            r'\b([a-zA-Z\s]*internship)\b',
+            r'\b(research\s+scientist)\b'
         ]
         
-        for pattern in position_patterns:
+        for pattern in exact_position_patterns:
             matches = re.finditer(pattern, original_text, re.IGNORECASE)
             for match in matches:
                 position = match.group(1).strip()
                 
-                # Clean up the position title - remove unwanted prefixes/suffixes
-                position = re.sub(r'^(thank\s+you\s+for\s+applying\s+to\s+the\s+|the\s+|your\s+|our\s+|this\s+|that\s+)', '', position, flags=re.IGNORECASE)
-                position = re.sub(r'\s+(position|role|job|opportunity)$', '', position, flags=re.IGNORECASE)
-                position = re.sub(r'\s+', ' ', position)  # Normalize whitespace
-                position = position.strip()
-                
-                # Filter out obvious false positives
-                if (len(position) >= 5 and 
-                    not position.lower().startswith(('thank', 'you', 'for', 'applying', 'to')) and
-                    'internship' in position.lower() or 'engineer' in position.lower() or 'developer' in position.lower() or 'manager' in position.lower() or 'scientist' in position.lower() or 'analyst' in position.lower() or 'designer' in position.lower()):
-                    
-                    print(f"   ✅ Extracted position: {position.title()}")
-                    return position.title()
+                # Clean up and validate
+                position = self._clean_position_title(position)
+                if position and self._is_valid_position_title(position):
+                    print(f"   ✅ Found exact position match: {position}")
+                    return position
         
-        # Fallback to keyword matching
-        position_indicators = [
-            "software engineer", "data scientist", "machine learning engineer",
-            "frontend developer", "backend developer", "fullstack developer",
-            "devops engineer", "cloud engineer", "web developer", "mobile developer",
-            "product manager", "ux designer", "data analyst", "research scientist",
-            "technical intern", "engineering intern", "developer intern",
-            "software engineering", "software development"
+        # STEP 2: Look for position context patterns (more complex extraction)
+        context_patterns = [
+            # "for the X position" - extract just X
+            r'for\s+the\s+([a-zA-Z\s]+(?:intern(?:ship)?|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)',
+            
+            # "X position at" - extract just X  
+            r'([a-zA-Z\s]+(?:intern(?:ship)?|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)\s+at',
+            
+            # Subject line position extraction
+            r'^[^-]*?[-–]\s*([A-Za-z\s]+(?:intern(?:ship)?|engineer|developer|scientist|manager|designer|analyst))',
+            r'([A-Za-z\s]+(?:intern(?:ship)?|engineer|developer|scientist|manager|designer|analyst))\s*[-–]',
+            
+            # "apply for X" patterns
+            r'apply(?:ing)?\s+for\s+(?:the\s+|a\s+)?([a-zA-Z\s]+(?:intern(?:ship)?|engineer|developer|scientist|manager|designer|analyst))',
+            
+            # "thank you for applying to/for X"
+            r'thank\s+you\s+for\s+applying\s+(?:to|for)\s+(?:the\s+|a\s+)?([a-zA-Z\s]+(?:intern(?:ship)?|engineer|developer|scientist|manager|designer|analyst))'
         ]
         
-        for position in position_indicators:
-            if position in text_combined:
-                print(f"   ✅ Extracted position: {position.title()}")
-                return position.title()
+        for pattern in context_patterns:
+            matches = re.finditer(pattern, original_text, re.IGNORECASE)
+            for match in matches:
+                position = match.group(1).strip()
+                
+                # Clean up and validate
+                position = self._clean_position_title(position)
+                if position and self._is_valid_position_title(position):
+                    print(f"   ✅ Found contextual position match: {position}")
+                    return position
         
-        # If internship is mentioned, use that
+        # STEP 3: Fallback to keyword matching
         if "internship" in text_combined:
-            print(f"   💼 Using position: Internship")
+            # Try to find what kind of internship
+            internship_types = [
+                "software engineering", "software development", "data science",
+                "machine learning", "web development", "frontend", "backend",
+                "fullstack", "mobile", "devops", "cloud", "product", "ux", "research"
+            ]
+            
+            for intern_type in internship_types:
+                if intern_type in text_combined:
+                    position = f"{intern_type.title()} Internship"
+                    print(f"   ✅ Found internship type: {position}")
+                    return position
+            
+            print(f"   💼 Using generic position: Internship")
             return "Internship"
         
+        # Final fallback
         print(f"   💼 Using default position: Software Engineer")
         return "Software Engineer"
+    
+    def _clean_position_title(self, position: str) -> str:
+        """Clean up extracted position title"""
+        if not position:
+            return ""
+        
+        # Remove common prefixes that get captured
+        position = re.sub(r'^(thank\s+you\s+for\s+applying\s+to\s+the\s+|the\s+|your\s+|our\s+|this\s+|that\s+|a\s+)', '', position, flags=re.IGNORECASE)
+        
+        # Remove common suffixes
+        position = re.sub(r'\s+(position|role|job|opportunity)$', '', position, flags=re.IGNORECASE)
+        
+        # Normalize whitespace
+        position = re.sub(r'\s+', ' ', position).strip()
+        
+        # Title case
+        position = position.title()
+        
+        return position
+    
+    def _is_valid_position_title(self, position: str) -> bool:
+        """Validate that extracted text is a reasonable position title"""
+        if not position:
+            return False
+        
+        # Must be reasonable length
+        if len(position) < 3 or len(position) > 50:
+            return False
+        
+        # Must contain at least one of these role keywords
+        role_keywords = [
+            'intern', 'engineer', 'developer', 'scientist', 'manager', 
+            'designer', 'analyst', 'specialist', 'coordinator', 'lead'
+        ]
+        
+        if not any(keyword in position.lower() for keyword in role_keywords):
+            return False
+        
+        # Blacklist obvious false positives
+        position_blacklist = [
+            'thank you', 'thanks', 'please', 'hello', 'dear', 'regards',
+            'sincerely', 'best', 'looking forward', 'we are', 'you are',
+            'this is', 'that is', 'it is', 'there is', 'here is'
+        ]
+        
+        if any(bad_phrase in position.lower() for bad_phrase in position_blacklist):
+            return False
+        
+        return True
 
 # Global classifier instance
 email_classifier = None

@@ -67,8 +67,11 @@ async def parse_and_classify_emails(credentials: Credentials, user_id: str):
                 print(f"   📊 Status: {job_info['status']}")
                 print(f"   📅 Applied: {job_info['applied_date']}")
                 
-                # Check if job already exists
-                existing_job = supabase.table("jobs").select("*").eq(
+                # Check if job already exists - try multiple matching strategies
+                existing_job = None
+                
+                # Strategy 1: Exact match on company and position
+                exact_match = supabase.table("jobs").select("*").eq(
                     "user_id", user_id
                 ).eq(
                     "company", job_info['company']
@@ -76,17 +79,42 @@ async def parse_and_classify_emails(credentials: Credentials, user_id: str):
                     "position", job_info['position']
                 ).execute()
                 
-                if existing_job.data:
+                if exact_match.data:
+                    existing_job = exact_match.data[0]
+                    print(f"   📋 Found exact match: {job_info['company']} - {job_info['position']}")
+                else:
+                    # Strategy 2: Match on company only (for cases where position might vary slightly)
+                    company_match = supabase.table("jobs").select("*").eq(
+                        "user_id", user_id
+                    ).eq(
+                        "company", job_info['company']
+                    ).execute()
+                    
+                    if company_match.data:
+                        # If there's only one application at this company, update it
+                        if len(company_match.data) == 1:
+                            existing_job = company_match.data[0]
+                            print(f"   📋 Found company match: {job_info['company']} (updating position from '{existing_job['position']}' to '{job_info['position']}')")
+                        else:
+                            # Multiple applications at same company - look for similar positions
+                            for job in company_match.data:
+                                if (job['position'].lower() in job_info['position'].lower() or 
+                                    job_info['position'].lower() in job['position'].lower() or
+                                    'intern' in job['position'].lower() and 'intern' in job_info['position'].lower()):
+                                    existing_job = job
+                                    print(f"   📋 Found similar position match: {existing_job['position']} ≈ {job_info['position']}")
+                                    break
+                
+                if existing_job:
                     # Job exists - check if we should update the status
-                    existing_record = existing_job.data[0]
-                    existing_status = existing_record['status']
+                    existing_status = existing_job['status']
                     new_status = job_info['status']
                     
                     print(f"   📋 Existing job found:")
                     print(f"      Current status: {existing_status}")
                     print(f"      New email status: {new_status}")
                     
-                    # Define status priority (higher number = more important)
+                    # Define status priority and valid transitions
                     status_priority = {
                         'applied': 1,
                         'interviewing': 2,
@@ -101,18 +129,20 @@ async def parse_and_classify_emails(credentials: Credentials, user_id: str):
                     should_update = (
                         new_priority > current_priority or 
                         (new_status.lower() == 'rejected' and existing_status.lower() != 'rejected') or
-                        (new_status.lower() == 'interviewing' and existing_status.lower() == 'applied')
+                        (new_status.lower() == 'interviewing' and existing_status.lower() == 'applied') or
+                        (new_status.lower() == 'offered' and existing_status.lower() in ['applied', 'interviewing'])
                     )
                     
                     if should_update:
                         # Update existing record with new status and latest email date
                         update_data = {
                             "status": new_status,
-                            "applied_date": job_info['applied_date']  # Update to latest email date
+                            "applied_date": job_info['applied_date'],  # Update to latest email date
+                            "position": job_info['position']  # Update position if it was refined
                         }
                         
                         updated_result = supabase.table("jobs").update(update_data).eq(
-                            "id", existing_record['id']
+                            "id", existing_job['id']
                         ).execute()
                         
                         print(f"   ✅ UPDATED existing job status: {existing_status} → {new_status}")
@@ -220,7 +250,7 @@ def classify_email(email_data: Dict) -> Dict:
         company = get_email_classifier().extract_company_from_email(sender)
         if not company:
             print(f"   ❌ Could not extract valid company name from content or sender")
-        return None
+            return None
     
     # Extract position using improved patterns
     position = get_email_classifier().extract_position_from_content(subject, body)
