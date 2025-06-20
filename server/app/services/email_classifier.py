@@ -193,35 +193,28 @@ class EmailClassifier:
         print(f"   🏢 Attempting to extract company from email content...")
         text_combined = f"{subject} {body}".lower()
         
-        # Common company name patterns in job emails
+        # Improved company name patterns - more specific to get just company names
         company_patterns = [
-            # Specific patterns for application emails (including rejections)
-            r'apply.*?for.*?(?:internship|position|role).*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'(?:internship|position|role|job).*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:internship|position|role)',
-            # More specific patterns for offers and interviews
-            r'position.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'internship.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'role.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'job.*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            # Signature patterns
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting\s+team',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+team',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+hr',
-            # Application response patterns
-            r'thank you for applying.*?(?:to|for).*?(?:internship|position|role).*?at\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'thank you for.*?interest.*?in\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'appreciate.*?interest.*?in\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            # Generic patterns (keep as fallback)
-            r'(?:from|with|for|by)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})(?:\s+team|\s+recruiting|\s+hr|\.|,|\s)',
-            r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+(?:recruiting|hiring|careers)',
-            r'we\'re.*?from\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
-            r'best regards,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting',
-            # Sincerely signature patterns (common in rejections)
-            r'sincerely,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+recruiting\s+team',
-            r'sincerely,?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\s+team',
-            # "encourage you to apply for future opportunities" patterns
-            r'encourage.*?apply.*?future.*?opportunities.*?(?:that match|at)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})',
+            # Most specific patterns first - company names in signatures/headers
+            r'sincerely,?\s*(?:the\s+)?([A-Z][a-zA-Z]+)\s+recruiting\s+team',
+            r'best\s+regards,?\s*(?:the\s+)?([A-Z][a-zA-Z]+)\s+recruiting\s+team',
+            r'([A-Z][a-zA-Z]+)\s+recruiting\s+team',
+            r'([A-Z][a-zA-Z]+)\s+team',
+            
+            # Subject line patterns
+            r'^([A-Z][a-zA-Z]+)\s+(?:software|engineering|internship|position)',
+            r'([A-Z][a-zA-Z]+)\s+(?:software\s+engineering|internship|position)\s*[-–]',
+            
+            # "at Company" patterns - most reliable
+            r'(?:internship|position|role|job)\s+at\s+([A-Z][a-zA-Z]+)',
+            r'applying?\s+(?:to|for).*?(?:internship|position|role|job)\s+at\s+([A-Z][a-zA-Z]+)',
+            
+            # "interest in Company" patterns  
+            r'interest\s+in\s+([A-Z][a-zA-Z]+)(?:\s+and|\s*[.\,]|\s*$)',
+            r'thank\s+you\s+for.*?interest.*?in\s+([A-Z][a-zA-Z]+)(?:\s+and|\s*[.\,]|\s*$)',
+            
+            # Fallback patterns
+            r'([A-Z][a-zA-Z]+)\s+(?:recruiting|hiring|careers|hr)(?:\s|$)',
         ]
         
         # Look for company names in original case-sensitive text
@@ -231,6 +224,10 @@ class EmailClassifier:
             matches = re.finditer(pattern, original_text, re.IGNORECASE)
             for match in matches:
                 company = match.group(1).strip()
+                
+                # Clean company name - remove common trailing words
+                company = re.sub(r'\s+(and|for|the|inc|corp|llc|ltd|team|recruiting|hr)$', '', company, flags=re.IGNORECASE)
+                company = company.strip()
                 
                 # Filter out common false positives
                 false_positives = [
@@ -245,10 +242,12 @@ class EmailClassifier:
                     'machine', 'learning', 'artificial', 'intelligence', 'future', 'opportunities'
                 ]
                 
+                # Check if it's a valid company name
                 if (len(company) >= 3 and 
                     company.lower() not in false_positives and
                     not company.lower().endswith('ing') and
-                    not re.match(r'^(mr|ms|mrs|dr|prof)\.?$', company.lower())):
+                    not re.match(r'^(mr|ms|mrs|dr|prof)\.?$', company.lower()) and
+                    not re.match(r'^(and|for|the|with|from)$', company.lower(), re.IGNORECASE)):
                     
                     print(f"   ✅ Found company in content: {company}")
                     return company.title()
@@ -265,28 +264,38 @@ class EmailClassifier:
         # Look for position patterns in the original case-sensitive text
         original_text = f"{subject} {body}"
         
-        # Position extraction patterns
+        # Improved position extraction patterns - get just the role title
         position_patterns = [
-            # Full position titles with "for the"
-            r'for the\s+([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))',
-            r'apply.*?for.*?(?:the\s+)?([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))',
-            # Position at company patterns
-            r'([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst)).*?at',
-            # Direct position mentions
-            r'(software\s+engineering\s+internship)',
-            r'(data\s+science\s+internship)', 
-            r'(machine\s+learning\s+engineer)',
-            r'(frontend\s+developer)',
-            r'(backend\s+developer)',
-            r'(fullstack\s+developer)',
-            r'(web\s+developer)',
-            r'(mobile\s+developer)',
-            r'(devops\s+engineer)',
-            r'(cloud\s+engineer)',
-            r'(product\s+manager)',
-            r'(ux\s+designer)',
-            r'(data\s+analyst)',
-            r'(research\s+scientist)',
+            # Direct, clean position titles (most specific first)
+            r'\b(software\s+engineering?\s+internship)\b',
+            r'\b(data\s+science?\s+internship)\b',
+            r'\b(machine\s+learning\s+engineer)\b',
+            r'\b(software\s+engineer)\b',
+            r'\b(frontend\s+developer)\b',
+            r'\b(backend\s+developer)\b',
+            r'\b(fullstack\s+developer)\b',
+            r'\b(web\s+developer)\b',
+            r'\b(mobile\s+developer)\b',
+            r'\b(devops\s+engineer)\b',
+            r'\b(cloud\s+engineer)\b',
+            r'\b(product\s+manager)\b',
+            r'\b(ux\s+designer)\b',
+            r'\b(data\s+analyst)\b',
+            r'\b(research\s+scientist)\b',
+            
+            # Subject line position patterns (clean extraction)
+            r'^[^-]*?[-–]\s*([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))',
+            r'([A-Z][a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s*[-–]',
+            
+            # "for the X position" patterns
+            r'for\s+the\s+([a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)',
+            r'apply.*?for.*?(?:the\s+)?([a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)',
+            
+            # "X position at" patterns  
+            r'([a-zA-Z\s]+(?:internship|engineer|developer|scientist|manager|designer|analyst))\s+(?:position|role)\s+at',
+            
+            # Generic "internship" as fallback
+            r'\b([a-zA-Z\s]*internship)\b',
         ]
         
         for pattern in position_patterns:
@@ -294,12 +303,16 @@ class EmailClassifier:
             for match in matches:
                 position = match.group(1).strip()
                 
-                # Clean up the position title
+                # Clean up the position title - remove unwanted prefixes/suffixes
+                position = re.sub(r'^(thank\s+you\s+for\s+applying\s+to\s+the\s+|the\s+|your\s+|our\s+|this\s+|that\s+)', '', position, flags=re.IGNORECASE)
+                position = re.sub(r'\s+(position|role|job|opportunity)$', '', position, flags=re.IGNORECASE)
                 position = re.sub(r'\s+', ' ', position)  # Normalize whitespace
+                position = position.strip()
                 
                 # Filter out obvious false positives
                 if (len(position) >= 5 and 
-                    not position.lower().startswith(('the ', 'your ', 'our ', 'this ', 'that '))):
+                    not position.lower().startswith(('thank', 'you', 'for', 'applying', 'to')) and
+                    'internship' in position.lower() or 'engineer' in position.lower() or 'developer' in position.lower() or 'manager' in position.lower() or 'scientist' in position.lower() or 'analyst' in position.lower() or 'designer' in position.lower()):
                     
                     print(f"   ✅ Extracted position: {position.title()}")
                     return position.title()
