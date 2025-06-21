@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, Plus, Calendar, Clock, Briefcase, Mail } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
@@ -9,6 +10,7 @@ import { ApplicationTable } from "@/components/application-table";
 import { StatsCard } from "@/components/stats-card";
 import { ApplicationChart } from "@/components/application-chart";
 import { ApplicationFlowChart } from "@/components/application-flow-chart";
+import { createClient } from "@/utils/supabase/client";
 
 interface Job {
   id: string;
@@ -29,9 +31,51 @@ export default function DashboardPage() {
   const [connected, setConnected] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
+
+  const router = useRouter();
+  const supabase = createClient();
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session) {
+          console.log("No valid session found, redirecting to login");
+          router.push("/login");
+          return;
+        }
+
+        setIsAuthenticating(false);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.push("/login");
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        router.push("/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router, supabase]);
 
   // Check if user is already connected and fetch jobs on mount
   useEffect(() => {
+    // Skip if still authenticating
+    if (isAuthenticating) return;
     // Check localStorage for previous connection
     const isConnected =
       localStorage.getItem("googleAccountConnected") === "true";
@@ -56,7 +100,7 @@ export default function DashboardPage() {
       // Clean up URL params
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [isAuthenticating]);
 
   // Update connected state based on jobs availability
   useEffect(() => {
