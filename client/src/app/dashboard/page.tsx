@@ -9,7 +9,6 @@ import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { ApplicationTable } from "@/components/application-table";
 import { StatsCard } from "@/components/stats-card";
 import { ApplicationChart } from "@/components/application-chart";
-import { ApplicationFlowChart } from "@/components/application-flow-chart";
 import { createClient } from "@/utils/supabase/client";
 
 interface Job {
