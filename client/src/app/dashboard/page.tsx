@@ -309,7 +309,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-
             {/* Applications Table */}
             <div className="bg-[#252525] border border-[#333333] rounded-md overflow-hidden">
               <div className="p-6 border-b border-[#333333]">

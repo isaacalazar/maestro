@@ -109,13 +109,13 @@ export default function Home() {
                 About
               </Link>
               <Link
-                href="#"
+                href="/privacy"
                 className="text-zinc-400 hover:text-white transition-colors"
               >
                 Privacy
               </Link>
               <Link
-                href="#"
+                href="/terms"
                 className="text-zinc-400 hover:text-white transition-colors"
               >
                 Terms

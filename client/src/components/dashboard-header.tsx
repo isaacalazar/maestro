@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Menu, ChevronDown, LogOut, User, Settings } from "lucide-react";
 import {
@@ -11,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar } from "@/components/ui/avatar";
 import { createClient } from "@/utils/supabase/client";
 
 interface DashboardHeaderProps {
@@ -97,16 +97,8 @@ export function DashboardHeader({
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center space-x-2 hover:bg-[#252525] rounded-md px-2">
-                <div className="h-7 w-7 rounded-md overflow-hidden bg-[#333333]">
-                  <Image
-                    src="/placeholder.svg?height=32&width=32"
-                    alt="User"
-                    width={32}
-                    height={32}
-                    className="object-cover"
-                  />
-                </div>
+              <button className="flex items-center space-x-2 hover:bg-[#252525] rounded-md px-2 py-1">
+                <Avatar email={userData.email} name={userData.name} size={28} />
                 <ChevronDown className="h-4 w-4 text-[#a3a3a3]" />
               </button>
             </DropdownMenuTrigger>

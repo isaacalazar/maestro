@@ -1,53 +1,73 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import React from "react";
 
-import { cn } from "@/lib/utils"
-
-function Avatar({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
-  return (
-    <AvatarPrimitive.Root
-      data-slot="avatar"
-      className={cn(
-        "relative flex size-8 shrink-0 overflow-hidden rounded-full",
-        className
-      )}
-      {...props}
-    />
-  )
+interface AvatarProps {
+  email?: string;
+  name?: string;
+  size?: number;
+  className?: string;
 }
 
-function AvatarImage({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
-  return (
-    <AvatarPrimitive.Image
-      data-slot="avatar-image"
-      className={cn("aspect-square size-full", className)}
-      {...props}
-    />
-  )
-}
+export function Avatar({
+  email,
+  name,
+  size = 32,
+  className = "",
+}: AvatarProps) {
+  // Generate a consistent color based on email/name
+  const generateColor = (text: string) => {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      hash = text.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-function AvatarFallback({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
-  return (
-    <AvatarPrimitive.Fallback
-      data-slot="avatar-fallback"
-      className={cn(
-        "bg-muted flex size-full items-center justify-center rounded-full",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+    // Generate HSL color with good saturation and lightness
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 65%, 55%)`;
+  };
 
-export { Avatar, AvatarImage, AvatarFallback }
+  // Get initials from name or email
+  const getInitials = () => {
+    if (name) {
+      return name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+
+    if (email) {
+      const emailPart = email.split("@")[0];
+      if (emailPart.includes(".")) {
+        return emailPart
+          .split(".")
+          .map((part) => part[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+      }
+      return emailPart.slice(0, 2).toUpperCase();
+    }
+
+    return "U";
+  };
+
+  const initials = getInitials();
+  const backgroundColor = generateColor(email || name || "user");
+
+  return (
+    <div
+      className={`rounded-md flex items-center justify-center text-white font-medium ${className}`}
+      style={{
+        width: size,
+        height: size,
+        backgroundColor,
+        fontSize: size * 0.4,
+      }}
+    >
+      {initials}
+    </div>
+  );
+}
