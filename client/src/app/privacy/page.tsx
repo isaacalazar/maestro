@@ -18,9 +18,7 @@ export default function PrivacyPage() {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
               Privacy Policy
             </h1>
-            <p className="text-gray-400 text-lg">
-              Last updated: Jun 20, 2025
-            </p>
+            <p className="text-gray-400 text-lg">Last updated: Jun 20, 2025</p>
             <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full"></div>
           </div>
         </div>
@@ -259,9 +257,9 @@ export default function PrivacyPage() {
                 <p>
                   We may update this privacy policy from time to time. We will
                   notify you of any material changes by posting the new policy
-                  on this page and updating the "Last updated" date. Your
-                  continued use of our service after such changes constitutes
-                  acceptance of the updated policy.
+                  on this page and updating the &ldquo;Last updated&rdquo; date.
+                  Your continued use of our service after such changes
+                  constitutes acceptance of the updated policy.
                 </p>
               </div>
             </div>

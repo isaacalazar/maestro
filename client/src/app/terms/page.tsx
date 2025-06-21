@@ -18,9 +18,7 @@ export default function TermsPage() {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
               Terms of Service
             </h1>
-            <p className="text-gray-400 text-lg">
-              Last updated: June 20, 2025
-            </p>
+            <p className="text-gray-400 text-lg">Last updated: June 20, 2025</p>
             <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full"></div>
           </div>
         </div>
@@ -38,10 +36,10 @@ export default function TermsPage() {
             <div className="space-y-6 text-gray-300 leading-relaxed">
               <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
                 <p>
-                  By accessing and using Maestro ("the Service"), you accept and
-                  agree to be bound by the terms and provision of this
-                  agreement. If you do not agree to abide by the above, please
-                  do not use this service.
+                  By accessing and using Maestro (&ldquo;the Service&rdquo;),
+                  you accept and agree to be bound by the terms and provision of
+                  this agreement. If you do not agree to abide by the above,
+                  please do not use this service.
                 </p>
               </div>
             </div>
@@ -294,11 +292,11 @@ export default function TermsPage() {
             <div className="space-y-6 text-gray-300 leading-relaxed">
               <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
                 <p>
-                  The Service is provided "as is" and "as available" without
-                  warranties of any kind. We disclaim all warranties, express or
-                  implied, including but not limited to implied warranties of
-                  merchantability, fitness for a particular purpose, and
-                  non-infringement.
+                  The Service is provided &ldquo;as is&rdquo; and &ldquo;as
+                  available&rdquo; without warranties of any kind. We disclaim
+                  all warranties, express or implied, including but not limited
+                  to implied warranties of merchantability, fitness for a
+                  particular purpose, and non-infringement.
                 </p>
               </div>
             </div>
@@ -338,9 +336,9 @@ export default function TermsPage() {
                 <p>
                   We reserve the right to modify these terms at any time. We
                   will notify users of any material changes by posting the new
-                  Terms of Service on this page and updating the "Last updated"
-                  date. Your continued use of the Service after such changes
-                  constitutes acceptance of the new terms.
+                  Terms of Service on this page and updating the &ldquo;Last
+                  updated&rdquo; date. Your continued use of the Service after
+                  such changes constitutes acceptance of the new terms.
                 </p>
               </div>
             </div>
