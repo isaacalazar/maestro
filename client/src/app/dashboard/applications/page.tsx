@@ -56,10 +56,10 @@ export default function ApplicationsPage() {
     // First, apply search query filter
     let matchesSearch = true;
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase();
       matchesSearch =
-        job.company.toLowerCase().includes(query) ||
-        job.position.toLowerCase().includes(query) ||
+      job.company.toLowerCase().includes(query) ||
+      job.position.toLowerCase().includes(query) ||
         job.status.toLowerCase().includes(query);
     }
 

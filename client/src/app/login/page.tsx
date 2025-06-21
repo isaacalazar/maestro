@@ -21,18 +21,13 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    try {
-      await login(email, password);
-    } catch (error: unknown) {
-      console.error("Login error:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to login. Please check your credentials.";
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
+    const result = await login(email, password);
+
+    if (result?.error) {
+      setError(result.error);
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -127,7 +122,9 @@ export default function LoginPage() {
             </button>
 
             {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm text-center">
+                {error}
+              </div>
             )}
 
             <div className="text-center mt-6">

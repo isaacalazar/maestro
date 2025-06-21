@@ -16,7 +16,25 @@ export async function login(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    throw error;
+    // Return user-friendly error messages based on error type
+    if (error.message.includes("Invalid login credentials")) {
+      return {
+        error:
+          "Invalid email or password. Please check your credentials and try again.",
+      };
+    } else if (error.message.includes("Email not confirmed")) {
+      return {
+        error:
+          "Please check your email and click the confirmation link before signing in.",
+      };
+    } else if (error.message.includes("Too many requests")) {
+      return {
+        error:
+          "Too many login attempts. Please wait a few minutes before trying again.",
+      };
+    } else {
+      return { error: "Unable to sign in. Please try again later." };
+    }
   }
 
   revalidatePath("/", "layout");
