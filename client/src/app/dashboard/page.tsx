@@ -309,12 +309,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Application Flow Chart */}
-            {jobs.length > 0 && (
-              <div className="mb-10">
-                <ApplicationFlowChart jobs={filteredJobs} />
-              </div>
-            )}
 
             {/* Applications Table */}
             <div className="bg-[#252525] border border-[#333333] rounded-md overflow-hidden">
