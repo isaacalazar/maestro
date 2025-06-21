@@ -51,16 +51,26 @@ export default function ApplicationsPage() {
     }
   };
 
-  // Filter jobs based on search query
+  // Filter jobs based on search query and status
   const filteredJobs = jobs.filter((job) => {
-    if (!searchQuery.trim()) return true;
+    // First, apply search query filter
+    let matchesSearch = true;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      matchesSearch =
+        job.company.toLowerCase().includes(query) ||
+        job.position.toLowerCase().includes(query) ||
+        job.status.toLowerCase().includes(query);
+    }
 
-    const query = searchQuery.toLowerCase();
-    return (
-      job.company.toLowerCase().includes(query) ||
-      job.position.toLowerCase().includes(query) ||
-      job.status.toLowerCase().includes(query)
-    );
+    // Then, apply status filter
+    let matchesStatus = true;
+    if (filterStatus !== "all") {
+      matchesStatus = job.status.toLowerCase() === filterStatus.toLowerCase();
+    }
+
+    // Job must match both search and status filters
+    return matchesSearch && matchesStatus;
   });
 
   const statusCounts = {
@@ -105,6 +115,17 @@ export default function ApplicationsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+                {(searchQuery || filterStatus !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterStatus("all");
+                    }}
+                    className="px-3 py-2 text-sm text-[#a3a3a3] hover:text-white border border-[#333333] rounded-md hover:bg-[#333333] transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
                 <Link
                   href="/dashboard/applications/new"
                   className="flex items-center gap-2 bg-[#9333EA] hover:bg-[#7e22ce] text-white px-4 py-2 rounded-md transition-colors text-sm"
@@ -191,6 +212,17 @@ export default function ApplicationsPage() {
                     ? `Filtered Applications (${filteredJobs.length})`
                     : "All Applications"}
                 </h2>
+                {(searchQuery || filterStatus !== "all") && (
+                  <div className="text-sm text-[#a3a3a3]">
+                    {searchQuery && `Search: "${searchQuery}"`}
+                    {searchQuery && filterStatus !== "all" && " • "}
+                    {filterStatus !== "all" &&
+                      `Status: ${
+                        filterStatus.charAt(0).toUpperCase() +
+                        filterStatus.slice(1)
+                      }`}
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <button className="flex items-center gap-2 text-[#a3a3a3] hover:text-white text-sm">
                     <Filter className="h-4 w-4" />

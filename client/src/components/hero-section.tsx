@@ -54,14 +54,17 @@ export function HeroSection() {
         >
           <div className="bg-gradient-to-tr from-[#9333EA]/10 to-[#9333EA]/5 rounded-xl overflow-hidden border border-zinc-800 shadow-2xl">
             <div className="relative aspect-[16/9]">
-              <Image
-                src="/placeholder.svg?height=1080&width=1920"
-                alt="Home Screen"
-                width={1920}
-                height={1080}
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <iframe
+                src="https://www.loom.com/embed/a672f0b8a9a04c238850a0e6880c15f8"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+                title="Product Demo Video"
+              ></iframe>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
             </div>
           </div>
           <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-zinc-900 border border-zinc-800 rounded-lg px-6 py-3 shadow-xl">

@@ -8,6 +8,7 @@ import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { ApplicationTable } from "@/components/application-table";
 import { StatsCard } from "@/components/stats-card";
 import { ApplicationChart } from "@/components/application-chart";
+import { ApplicationFlowChart } from "@/components/application-flow-chart";
 
 interface Job {
   id: string;
@@ -264,6 +265,13 @@ export default function DashboardPage() {
                 <ApplicationChart jobs={filteredJobs} />
               </div>
             </div>
+
+            {/* Application Flow Chart */}
+            {jobs.length > 0 && (
+              <div className="mb-10">
+                <ApplicationFlowChart jobs={filteredJobs} />
+              </div>
+            )}
 
             {/* Applications Table */}
             <div className="bg-[#252525] border border-[#333333] rounded-md overflow-hidden">
