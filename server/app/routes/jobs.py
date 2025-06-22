@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import List
 from datetime import datetime
 from app.db.supabase import supabase
@@ -10,31 +10,38 @@ import os
 
 router = APIRouter()
 
-async def get_current_user():
+async def get_current_user(request: Request):
+    """Get the current user based on email from query parameters"""
     try:
-        users_response = supabase.table("users").select("id, email").order("created_at", desc=True).limit(1).execute()
-        if users_response.data:
-            user = users_response.data[0]
-            print(f"Using user: {user['email']} (ID: {user['id']})")
-            return user['id']
-        else:
-            print("No users found in database - you need to complete OAuth first")
-            # Return a valid UUID format as fallback
-            return "550e8400-e29b-41d4-a716-446655440000"
+        user_email = request.query_params.get('user_email')
+        
+        if not user_email:
+            raise HTTPException(status_code=401, detail="User email is required")
+        
+        # Find user by email in Supabase
+        users_response = supabase.table("users").select("id, email").eq("email", user_email).execute()
+        
+        if not users_response.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = users_response.data[0]
+        print(f"Authenticated user: {user['email']} (ID: {user['id']})")
+        return user['id']
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error fetching user: {e}")
-        # Return a valid UUID format as fallback
-        return "550e8400-e29b-41d4-a716-446655440000"
+        print(f"Error in get_current_user: {e}")
+        raise HTTPException(status_code=500, detail="Authentication error")
 
 @router.get("/jobs", response_model=List[Job])
-async def get_jobs(user_id: str = Depends(get_current_user)):
-    """Get all job applications for the user"""
+async def get_jobs(request: Request, user_id: str = Depends(get_current_user)):
+    """Get all job applications for the authenticated user"""
     try:
         print(f"Fetching jobs for user: {user_id}")
-        print(f"Supabase client: {supabase}")
         
         response = supabase.table("jobs").select("*").eq("user_id", user_id).execute()
-        print(f"Supabase response: {response}")
+        print(f"Found {len(response.data) if response.data else 0} jobs for user")
         
         return response.data if response.data else []
     except Exception as e:
@@ -43,8 +50,8 @@ async def get_jobs(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/jobs", response_model=Job)
-async def create_job(job: JobCreate, user_id: str = Depends(get_current_user)):
-    """Create a job record manually"""
+async def create_job(job: JobCreate, request: Request, user_id: str = Depends(get_current_user)):
+    """Create a job record for the authenticated user"""
     try:
         print(f"Creating job for user: {user_id}")
         print(f"Job data: {job}")
@@ -70,8 +77,8 @@ async def create_job(job: JobCreate, user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/sync-emails")
-async def sync_emails(user_id: str = Depends(get_current_user)):
-    """Manually trigger email parsing and sync"""
+async def sync_emails(request: Request, user_id: str = Depends(get_current_user)):
+    """Manually trigger email parsing and sync for the authenticated user"""
     try:
         print(f"Manual email sync requested for user: {user_id}")
         
