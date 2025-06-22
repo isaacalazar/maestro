@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { createClient } from "@/utils/supabase/client";
 
 // const API_BASE_URL =
 //   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -32,6 +33,7 @@ export default function NewApplicationPage() {
   });
 
   const router = useRouter();
+  const supabase = createClient();
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -50,8 +52,21 @@ export default function NewApplicationPage() {
     setIsSubmitting(true);
 
     try {
+      // Get current user from Supabase
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error("User not authenticated:", authError);
+        return;
+      }
+
       const response = await fetch(
-        `https://maestro-production-0a0f.up.railway.app/api/jobs`,
+        `https://maestro-production-0a0f.up.railway.app/api/jobs?user_email=${encodeURIComponent(
+          user.email || ""
+        )}`,
         {
           method: "POST",
           headers: {

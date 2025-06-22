@@ -6,6 +6,7 @@ import { Search, Plus, Filter, ArrowUpDown, Briefcase } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { ApplicationTable } from "@/components/application-table";
+import { createClient } from "@/utils/supabase/client";
 
 interface Job {
   id: string;
@@ -25,6 +26,8 @@ export default function ApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
+  const supabase = createClient();
+
   // Fetch jobs on component mount
   useEffect(() => {
     fetchJobs();
@@ -32,8 +35,23 @@ export default function ApplicationsPage() {
 
   const fetchJobs = async () => {
     try {
+      // Get current user from Supabase
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error("User not authenticated:", authError);
+        setJobs([]);
+        return;
+      }
+
+      // Make API call with user email as identifier
       const response = await fetch(
-        `https://maestro-production-0a0f.up.railway.app/api/jobs`
+        `https://maestro-production-0a0f.up.railway.app/api/jobs?user_email=${encodeURIComponent(
+          user.email || ""
+        )}`
       );
 
       if (response.ok) {
@@ -56,10 +74,10 @@ export default function ApplicationsPage() {
     // First, apply search query filter
     let matchesSearch = true;
     if (searchQuery.trim()) {
-    const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase();
       matchesSearch =
-      job.company.toLowerCase().includes(query) ||
-      job.position.toLowerCase().includes(query) ||
+        job.company.toLowerCase().includes(query) ||
+        job.position.toLowerCase().includes(query) ||
         job.status.toLowerCase().includes(query);
     }
 

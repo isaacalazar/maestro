@@ -109,6 +109,11 @@ export default function DashboardPage() {
     }
   }, [jobs, connected]);
 
+  // Fetch jobs on component mount
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
   const connectGoogleAccount = async () => {
     try {
       setLoading(true);
@@ -128,41 +133,37 @@ export default function DashboardPage() {
 
   const fetchJobs = async () => {
     try {
-      console.log(
-        `Attempting to fetch jobs from: https://maestro-production-0a0f.up.railway.app/api/jobs`
-      );
+      // Get current user from Supabase
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
+      if (authError || !user) {
+        console.error("User not authenticated:", authError);
+        setJobs([]);
+        return;
+      }
+
+      // Make API call with user email as identifier
       const response = await fetch(
-        `https://maestro-production-0a0f.up.railway.app/api/jobs`
+        `https://maestro-production-0a0f.up.railway.app/api/jobs?user_email=${encodeURIComponent(
+          user.email || ""
+        )}`
       );
-
-      console.log("Jobs API response:", response.status, response.statusText);
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Jobs data received:", data);
-        // Ensure data is an array
+        console.log("Jobs data:", data);
+
         const jobsArray = Array.isArray(data) ? data : [];
         setJobs(jobsArray);
-
-        // If we got jobs successfully, mark as connected
-        if (jobsArray.length > 0) {
-          setConnected(true);
-          localStorage.setItem("googleAccountConnected", "true");
-        }
       } else {
-        const errorText = await response.text();
-        console.error("API returned error:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText,
-          url: response.url,
-        });
+        console.error("Failed to fetch jobs");
         setJobs([]);
       }
     } catch (error) {
-      console.error("Network error - backend might not be running:", error);
-      console.error("Make sure your backend server is running on port 8000");
+      console.error("Network error fetching jobs:", error);
       setJobs([]);
     }
   };
@@ -178,8 +179,21 @@ export default function DashboardPage() {
       setSyncing(true);
       console.log("Manually syncing emails...");
 
+      // Get current user from Supabase
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error("User not authenticated:", authError);
+        return;
+      }
+
       const response = await fetch(
-        `https://maestro-production-0a0f.up.railway.app/api/sync-emails`,
+        `https://maestro-production-0a0f.up.railway.app/api/sync-emails?user_email=${encodeURIComponent(
+          user.email || ""
+        )}`,
         {
           method: "POST",
         }
