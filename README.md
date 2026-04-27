@@ -20,11 +20,10 @@ Maestro is an AI-powered internship tracker that automates the tedious side of a
 - **Backend:** Python, Gmail API, OAuth 2.0
 - **Database & Caching:** PostgreSQL, Redis
 - **AI/NLP:** Custom email classification pipeline for detecting application status
-- **Deployment:** Vercel — [maestro-rouge.vercel.app](https://maestro-rouge.vercel.app)
 
 ## 🏗️ How I Built It
 
-I started by mapping out the data model — what an "application" actually looks like and how status transitions work (applied → OA → interview → offer/rejection). Once the schema was solid in Postgres, I built the Gmail integration using OAuth 2.0 so users authorize access to their inbox without sharing credentials. The NLP layer was the hardest part: I had to classify thousands of email types (auto-replies, ATS confirmations, recruiter outreach, rejections in 50 different phrasings) without false positives polluting the dashboard. I built the frontend in Next.js with a clean, real-time dashboard, then deployed it to Vercel for fast iteration.
+I started by mapping out the data model — what an "application" actually looks like and how status transitions work (applied → OA → interview → offer/rejection). Once the schema was solid in Postgres, I built the Gmail integration using OAuth 2.0 so users authorize access to their inbox without sharing credentials. The NLP layer was the hardest part: I had to classify thousands of email types (auto-replies, ATS confirmations, recruiter outreach, rejections in 50 different phrasings) without false positives polluting the dashboard. I built the frontend in Next.js with a clean, real-time dashboard.
 
 ## 🐛 Bugs Fixed Along the Way
 
