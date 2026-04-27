@@ -4,9 +4,7 @@ Maestro is an AI-powered internship tracker that automates the tedious side of a
 
 ## 🎥 Demo
 
-[![Watch the demo](https://img.shields.io/badge/▶_Watch_Demo-Loom-625df5?style=for-the-badge)](YOUR_LOOM_LINK_HERE)
-
-> Replace `YOUR_LOOM_LINK_HERE` with the actual Loom video URL.
+▶️ **[Watch the demo on Loom](https://www.loom.com/share/a672f0b8a9a04c238850a0e6880c15f8)**
 
 ## ✨ What It Does
 
@@ -22,7 +20,7 @@ Maestro is an AI-powered internship tracker that automates the tedious side of a
 - **Backend:** Python, Gmail API, OAuth 2.0
 - **Database & Caching:** PostgreSQL, Redis
 - **AI/NLP:** Custom email classification pipeline for detecting application status
-- **Deployment:** Vercel (frontend), [maestro-rouge.vercel.app](https://maestro-rouge.vercel.app)
+- **Deployment:** Vercel — [maestro-rouge.vercel.app](https://maestro-rouge.vercel.app)
 
 ## 🏗️ How I Built It
 
@@ -47,3 +45,4 @@ Currently in MVP / public beta. Actively iterating on:
 - **Author:** Isaac Alazar
 - **Email:** ialaz@uic.edu
 - **LinkedIn:** [linkedin.com/in/isaac-alazar](https://www.linkedin.com/in/isaac-alazar)
+- **GitHub:** [github.com/isaacalazar](https://github.com/isaacalazar)
